@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-every-frontend-source-file-is-complete-and-runnable-all-react-components-pages-hooks-and-utilities-contain-full-implementations-with-no-todo-placeholders-type-errors-or-missing-imports-the-app-must-compile-with-tsc-noemit-passing-cleanly",
-      "featureTitle": "Ensure every frontend source file is complete and runnable: all React components, pages, hooks, and utilities contain full implementations with no TODO placeholders, type errors, or missing imports. The app must compile with `tsc --noEmit` passing cleanly.",
+      "featureId": "feature-rebuild-and-redeploy-the-application-in-its-current-version-1-state-all-frontend-source-files-backend-motoko-logic-styles-configuration-files-and-assets-exactly-as-they-stand-with-no-modifications-this-is-a-clean-production-push-of-the-existing-version-1-codebase",
+      "featureTitle": "Rebuild and redeploy the application in its current Version 1 state — all frontend source files, backend Motoko logic, styles, configuration files, and assets — exactly as they stand, with no modifications. This is a clean production push of the existing Version 1 codebase.",
       "files": [
         "frontend/src/App.tsx",
         "frontend/src/components/AccessDeniedScreen.tsx",
@@ -14,11 +14,14 @@
         "frontend/src/components/Footer.tsx",
         "frontend/src/components/Header.tsx",
         "frontend/src/components/HeroCarousel.tsx",
+        "frontend/src/components/OrderManagementTable.tsx",
         "frontend/src/components/OrderStatusTimeline.tsx",
         "frontend/src/components/OrderSummary.tsx",
         "frontend/src/components/PaymentMethodSelector.tsx",
         "frontend/src/components/ProductCard.tsx",
+        "frontend/src/components/ProductFormModal.tsx",
         "frontend/src/components/ProductImageGallery.tsx",
+        "frontend/src/components/ProductManagementTable.tsx",
         "frontend/src/components/ProfileSetupModal.tsx",
         "frontend/src/components/QuantityPicker.tsx",
         "frontend/src/components/ReviewsList.tsx",
@@ -26,16 +29,14 @@
         "frontend/src/components/SizeSelector.tsx",
         "frontend/src/components/SortDropdown.tsx",
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/index.css",
+        "frontend/src/pages/Cart.tsx",
         "frontend/src/pages/Checkout.tsx",
         "frontend/src/pages/Home.tsx",
-        "frontend/src/pages/OrderConfirmation.tsx",
-        "frontend/src/pages/OrderHistory.tsx",
         "frontend/src/pages/OrderTracking.tsx",
+        "frontend/src/pages/ProductDetail.tsx",
         "frontend/src/pages/ProductListing.tsx",
         "frontend/src/pages/SearchResults.tsx",
-        "frontend/src/utils/urlParams.ts",
-        "frontend/tailwind.config.js"
+        "frontend/src/utils/urlParams.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -46,7 +47,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-14"
+        "REQ-18"
       ],
       "confidence": "high"
     }

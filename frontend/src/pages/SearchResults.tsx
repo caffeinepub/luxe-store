@@ -1,90 +1,61 @@
-/**
- * SearchResults.tsx — Search results page fetching products by keyword
- * with client-side category/price filters and sorting.
- * Derives categories/subCategories from results for FilterPanel.
- */
 import { useState, useMemo } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { Search, SlidersHorizontal } from 'lucide-react';
-import { useSearchProducts } from '@/hooks/useQueries';
-import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
-import FilterPanel, { type FilterState } from '@/components/FilterPanel';
-import SortDropdown from '@/components/SortDropdown';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useSearchProducts } from '../hooks/useQueries';
+import ProductCard, { ProductCardSkeleton } from '../components/ProductCard';
+import FilterPanel from '../components/FilterPanel';
+import SortDropdown, { type SortOption } from '../components/SortDropdown';
 import { Button } from '@/components/ui/button';
-import type { Product } from '@/backend';
-
-const MAX_PRICE = 5000;
-
-function sortProducts(products: Product[], sortBy: string): Product[] {
-  const sorted = [...products];
-  switch (sortBy) {
-    case 'price-asc':
-      return sorted.sort((a, b) => a.price - b.price);
-    case 'price-desc':
-      return sorted.sort((a, b) => b.price - a.price);
-    case 'newest':
-      return sorted.sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
-    default:
-      return sorted;
-  }
-}
 
 export default function SearchResults() {
   const search = useSearch({ from: '/search' });
   const keyword = (search as Record<string, string>).q ?? '';
 
-  const [filters, setFilters] = useState<FilterState>({
-    category:    '',
-    subCategory: '',
-    minPrice:    0,
-    maxPrice:    MAX_PRICE,
-  });
-  const [sortBy, setSortBy] = useState('popularity');
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('');
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [showFilters, setShowFilters] = useState(false);
 
-  const { data: results, isLoading } = useSearchProducts(keyword);
+  const { data: results = [], isLoading } = useSearchProducts(keyword);
 
-  // Derive categories and sub-categories from search results
-  const categories = useMemo(() => {
-    if (!results) return [];
-    return Array.from(new Set(results.map((p) => p.category))).filter(Boolean).sort();
-  }, [results]);
+  const categories = useMemo(
+    () => [...new Set(results.map((p) => p.category))].filter(Boolean).sort(),
+    [results]
+  );
 
   const subCategories = useMemo(() => {
-    if (!results) return [];
-    const filtered = filters.category
-      ? results.filter((p) => p.category === filters.category)
+    const filtered = selectedCategory
+      ? results.filter((p) => p.category === selectedCategory)
       : results;
-    return Array.from(new Set(filtered.map((p) => p.subCategory))).filter(Boolean).sort();
-  }, [results, filters.category]);
+    return [...new Set(filtered.map((p) => p.subCategory))].filter(Boolean).sort();
+  }, [results, selectedCategory]);
 
   const filteredResults = useMemo(() => {
-    if (!results) return [];
-    let filtered = results;
+    let filtered = [...results];
+    if (selectedCategory) filtered = filtered.filter((p) => p.category === selectedCategory);
+    if (selectedSubCategory) filtered = filtered.filter((p) => p.subCategory === selectedSubCategory);
+    filtered = filtered.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
+    switch (sortBy) {
+      case 'price-asc': filtered.sort((a, b) => a.price - b.price); break;
+      case 'price-desc': filtered.sort((a, b) => b.price - a.price); break;
+      case 'discount': filtered.sort((a, b) => Number(b.discountPercent) - Number(a.discountPercent)); break;
+      default: filtered.sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
+    }
+    return filtered;
+  }, [results, selectedCategory, selectedSubCategory, priceRange, sortBy]);
 
-    if (filters.category) {
-      filtered = filtered.filter((p) => p.category === filters.category);
-    }
-    if (filters.subCategory) {
-      filtered = filtered.filter((p) => p.subCategory === filters.subCategory);
-    }
-    if (filters.minPrice > 0) {
-      filtered = filtered.filter((p) => p.price >= filters.minPrice);
-    }
-    if (filters.maxPrice < MAX_PRICE) {
-      filtered = filtered.filter((p) => p.price <= filters.maxPrice);
-    }
-
-    return sortProducts(filtered, sortBy);
-  }, [results, filters, sortBy]);
+  const resetFilters = () => {
+    setSelectedCategory('');
+    setSelectedSubCategory('');
+    setPriceRange([0, 10000]);
+    setSortBy('newest');
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
       <div className="mb-6">
-        <p className="text-xs text-accent uppercase tracking-widest mb-1">Search</p>
-        <h1 className="font-serif text-2xl md:text-3xl font-semibold">
+        <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
           {keyword ? `Results for "${keyword}"` : 'Search Products'}
         </h1>
         {!isLoading && keyword && (
@@ -97,66 +68,72 @@ export default function SearchResults() {
       {!keyword ? (
         <div className="text-center py-20">
           <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <p className="font-serif text-xl mb-2">Start searching</p>
-          <p className="text-muted-foreground text-sm">
-            Use the search bar above to find products
-          </p>
+          <p className="font-display text-xl mb-2">Start searching</p>
+          <p className="text-muted-foreground text-sm">Use the search bar above to find products</p>
         </div>
       ) : (
         <div className="flex gap-6">
           {/* Desktop Filter Sidebar */}
-          <aside className="hidden lg:block w-56 shrink-0">
-            <div className="sticky top-24">
-              <FilterPanel
-                filters={filters}
-                onFiltersChange={setFilters}
-                categories={categories}
-                subCategories={subCategories}
-                maxPriceLimit={MAX_PRICE}
-              />
-            </div>
+          <aside className="hidden md:block w-64 shrink-0">
+            <FilterPanel
+              categories={categories}
+              subCategories={subCategories}
+              selectedCategory={selectedCategory}
+              selectedSubCategory={selectedSubCategory}
+              priceRange={priceRange}
+              onCategoryChange={setSelectedCategory}
+              onSubCategoryChange={setSelectedSubCategory}
+              onPriceRangeChange={setPriceRange}
+            />
           </aside>
+
+          {/* Mobile Filters */}
+          {showFilters && (
+            <div
+              className="md:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+              onClick={() => setShowFilters(false)}
+            >
+              <div
+                className="absolute right-0 top-0 bottom-0 w-72 bg-background p-4 shadow-xl overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FilterPanel
+                  categories={categories}
+                  subCategories={subCategories}
+                  selectedCategory={selectedCategory}
+                  selectedSubCategory={selectedSubCategory}
+                  priceRange={priceRange}
+                  onCategoryChange={setSelectedCategory}
+                  onSubCategoryChange={setSelectedSubCategory}
+                  onPriceRangeChange={setPriceRange}
+                  onClose={() => setShowFilters(false)}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* Toolbar */}
             <div className="flex items-center justify-between mb-5 gap-3">
-              <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="lg:hidden border-border text-foreground h-9 gap-1.5 text-xs"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                    Filters
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="bg-card border-border w-72 p-4">
-                  <FilterPanel
-                    filters={filters}
-                    onFiltersChange={(f) => {
-                      setFilters(f);
-                      setFilterSheetOpen(false);
-                    }}
-                    categories={categories}
-                    subCategories={subCategories}
-                    maxPriceLimit={MAX_PRICE}
-                  />
-                </SheetContent>
-              </Sheet>
-
+              <Button
+                variant="outline"
+                size="sm"
+                className="md:hidden"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <SlidersHorizontal size={14} className="mr-1" /> Filters
+              </Button>
               <SortDropdown value={sortBy} onChange={setSortBy} />
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
               </div>
             ) : filteredResults.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {filteredResults.map((product) => (
                   <ProductCard key={product.id.toString()} product={product} />
                 ))}
@@ -164,10 +141,13 @@ export default function SearchResults() {
             ) : (
               <div className="text-center py-20">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="font-serif text-xl mb-2">No results found</p>
+                <p className="font-display text-xl mb-2">No results found</p>
                 <p className="text-muted-foreground text-sm">
                   Try different keywords or adjust your filters
                 </p>
+                <button onClick={resetFilters} className="mt-4 text-primary hover:underline text-sm">
+                  Clear filters
+                </button>
               </div>
             )}
           </div>

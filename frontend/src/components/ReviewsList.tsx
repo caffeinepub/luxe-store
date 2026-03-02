@@ -1,49 +1,28 @@
-/**
- * ReviewsList.tsx — Product reviews list with average rating display
- * and inline review submission form for authenticated users.
- */
 import { useState } from 'react';
-import { Star, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useInternetIdentity } from '@/hooks/useInternetIdentity';
-import { useGetProductReviews, useAddReview } from '@/hooks/useQueries';
+import { Star } from 'lucide-react';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useGetProductReviews, useAddReview } from '../hooks/useQueries';
+import type { ProductId } from '../backend';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
-import { formatTimestampShort } from '@/utils/urlParams';
 
 interface ReviewsListProps {
-  productId: bigint;
+  productId: ProductId;
 }
 
-function StarRating({
-  value,
-  onChange,
-  readonly = false,
-}: {
-  value: number;
-  onChange?: (v: number) => void;
-  readonly?: boolean;
-}) {
-  const [hovered, setHovered] = useState(0);
-
+function StarRating({ rating, onRate }: { rating: number; onRate?: (r: number) => void }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
-          disabled={readonly}
-          onClick={() => onChange?.(star)}
-          onMouseEnter={() => !readonly && setHovered(star)}
-          onMouseLeave={() => !readonly && setHovered(0)}
-          className={readonly ? 'cursor-default' : 'cursor-pointer'}
+          onClick={() => onRate?.(star)}
+          className={`transition-colors ${onRate ? 'cursor-pointer hover:scale-110' : 'cursor-default'}`}
         >
           <Star
-            className={`h-4 w-4 transition-colors ${
-              star <= (hovered || value)
-                ? 'fill-accent text-accent'
-                : 'text-muted-foreground'
+            className={`h-5 w-5 ${
+              star <= rating ? 'fill-primary text-primary' : 'text-muted-foreground'
             }`}
           />
         </button>
@@ -54,115 +33,80 @@ function StarRating({
 
 export default function ReviewsList({ productId }: ReviewsListProps) {
   const { identity } = useInternetIdentity();
-  const { data: reviews, isLoading } = useGetProductReviews(productId);
+  const { data: reviews = [], isLoading } = useGetProductReviews(productId);
   const addReview = useAddReview();
 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   const avgRating =
-    reviews && reviews.length > 0
+    reviews.length > 0
       ? reviews.reduce((sum, r) => sum + Number(r.rating), 0) / reviews.length
       : 0;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!comment.trim()) {
-      toast.error('Please write a comment');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await addReview.mutateAsync({ productId, rating: BigInt(rating), comment });
-      toast.success('Review submitted!');
-      setComment('');
-      setRating(5);
-    } catch {
-      toast.error('Failed to submit review');
-    } finally {
-      setSubmitting(false);
-    }
+    if (!comment.trim()) return;
+    addReview.mutate(
+      { productId, rating: BigInt(rating), comment },
+      {
+        onSuccess: () => {
+          setComment('');
+          setRating(5);
+        },
+      }
+    );
   };
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-serif text-2xl font-semibold">Customer Reviews</h2>
-        {reviews && reviews.length > 0 && (
-          <div className="flex items-center gap-2">
-            <StarRating value={Math.round(avgRating)} readonly />
-            <span className="text-sm text-muted-foreground">
-              {avgRating.toFixed(1)} ({reviews.length} reviews)
-            </span>
-          </div>
-        )}
+    <div className="space-y-6">
+      {/* Summary */}
+      <div className="flex items-center gap-4">
+        <div className="text-4xl font-display font-bold text-primary">{avgRating.toFixed(1)}</div>
+        <div>
+          <StarRating rating={Math.round(avgRating)} />
+          <p className="text-sm text-muted-foreground mt-1">{reviews.length} reviews</p>
+        </div>
       </div>
 
-      {/* Review Form */}
-      {identity ? (
-        <form onSubmit={handleSubmit} className="bg-secondary rounded-lg p-4 space-y-3">
-          <h3 className="font-medium text-sm">Write a Review</h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Your rating:</span>
-            <StarRating value={rating} onChange={setRating} />
-          </div>
+      {/* Add Review */}
+      {identity && (
+        <form onSubmit={handleSubmit} className="bg-muted rounded-xl p-4 space-y-3">
+          <h4 className="font-semibold text-foreground">Write a Review</h4>
+          <StarRating rating={rating} onRate={setRating} />
           <Textarea
-            placeholder="Share your experience with this product…"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
+            placeholder="Share your experience..."
+            className="bg-surface border-border resize-none"
             rows={3}
-            className="resize-none"
           />
-          <Button
-            type="submit"
-            disabled={submitting}
-            size="sm"
-            className="bg-accent text-accent-foreground hover:bg-gold-600"
-          >
-            {submitting && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-            Submit Review
+          <Button type="submit" disabled={addReview.isPending || !comment.trim()} size="sm">
+            {addReview.isPending ? 'Submitting...' : 'Submit Review'}
           </Button>
         </form>
-      ) : (
-        <p className="text-sm text-muted-foreground bg-secondary rounded-lg p-4">
-          Please <strong>login</strong> to write a review.
-        </p>
       )}
 
       {/* Reviews List */}
       {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-3/4" />
-            </div>
-          ))}
-        </div>
-      ) : reviews && reviews.length > 0 ? (
+        <p className="text-muted-foreground text-sm">Loading reviews...</p>
+      ) : reviews.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No reviews yet. Be the first to review!</p>
+      ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <div key={review.id.toString()} className="border-b border-border pb-4 last:border-0">
-              <div className="flex items-center justify-between mb-1">
-                <StarRating value={Number(review.rating)} readonly />
+            <div key={review.id.toString()} className="bg-surface rounded-xl p-4 shadow-luxury">
+              <div className="flex items-center justify-between mb-2">
+                <StarRating rating={Number(review.rating)} />
                 <span className="text-xs text-muted-foreground">
-                  {formatTimestampShort(review.date)}
+                  {new Date(Number(review.date) / 1_000_000).toLocaleDateString()}
                 </span>
               </div>
-              <p className="text-sm text-foreground leading-relaxed">{review.comment}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {review.userId.toString().slice(0, 12)}…
-              </p>
+              <p className="text-sm text-foreground">{review.comment}</p>
             </div>
           ))}
         </div>
-      ) : (
-        <p className="text-sm text-muted-foreground text-center py-8">
-          No reviews yet. Be the first to review this product!
-        </p>
       )}
-    </section>
+    </div>
   );
 }

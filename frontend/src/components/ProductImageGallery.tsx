@@ -1,9 +1,5 @@
-/**
- * ProductImageGallery.tsx — Swipeable product image gallery with main view,
- * navigation arrows, and thumbnail strip.
- */
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -11,91 +7,53 @@ interface ProductImageGalleryProps {
 }
 
 export default function ProductImageGallery({ images, productName }: ProductImageGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [current, setCurrent] = useState(0);
 
-  const validImages = images.filter((_, i) => !imageErrors.has(i));
-  const displayImages = validImages.length > 0 ? validImages : [];
+  const displayImages = images.length > 0 ? images : ['/assets/generated/hero-banner-1.dim_1200x500.png'];
 
-  const handlePrev = () => {
-    setActiveIndex((i) => (i - 1 + displayImages.length) % displayImages.length);
-  };
-
-  const handleNext = () => {
-    setActiveIndex((i) => (i + 1) % displayImages.length);
-  };
-
-  const handleImageError = (index: number) => {
-    setImageErrors((prev) => new Set(prev).add(index));
-  };
-
-  if (displayImages.length === 0) {
-    return (
-      <div className="aspect-square bg-secondary rounded-lg flex items-center justify-center">
-        <ImageOff className="h-16 w-16 text-muted-foreground/30" />
-      </div>
-    );
-  }
+  const prev = () => setCurrent((c) => (c - 1 + displayImages.length) % displayImages.length);
+  const next = () => setCurrent((c) => (c + 1) % displayImages.length);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="space-y-3">
       {/* Main Image */}
-      <div className="relative aspect-square bg-secondary rounded-lg overflow-hidden group">
+      <div className="relative overflow-hidden rounded-2xl bg-muted shadow-luxury" style={{ height: '420px' }}>
         <img
-          src={displayImages[activeIndex]}
-          alt={`${productName} — image ${activeIndex + 1}`}
+          src={displayImages[current]}
+          alt={`${productName} - ${current + 1}`}
           className="w-full h-full object-cover"
-          onError={() => handleImageError(activeIndex)}
         />
-
-        {/* Navigation Arrows */}
         {displayImages.length > 1 && (
           <>
             <button
-              onClick={handlePrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-card opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label="Previous image"
+              onClick={prev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors"
             >
-              <ChevronLeft className="h-5 w-5 text-charcoal-700" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
             <button
-              onClick={handleNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-card opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label="Next image"
+              onClick={next}
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors"
             >
-              <ChevronRight className="h-5 w-5 text-charcoal-700" />
+              <ChevronRight className="h-5 w-5" />
             </button>
           </>
-        )}
-
-        {/* Image Counter */}
-        {displayImages.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-charcoal-900/60 text-white text-xs px-2 py-0.5 rounded-full">
-            {activeIndex + 1} / {displayImages.length}
-          </div>
         )}
       </div>
 
       {/* Thumbnails */}
       {displayImages.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {displayImages.map((src, idx) => (
+          {displayImages.map((img, idx) => (
             <button
               key={idx}
-              onClick={() => setActiveIndex(idx)}
-              className={`shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
-                idx === activeIndex
-                  ? 'border-accent shadow-gold'
-                  : 'border-border hover:border-accent/50'
+              onClick={() => setCurrent(idx)}
+              className={`shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${
+                idx === current ? 'border-primary' : 'border-transparent hover:border-primary/50'
               }`}
-              aria-label={`View image ${idx + 1}`}
+              style={{ width: '72px', height: '72px' }}
             >
-              <img
-                src={src}
-                alt={`${productName} thumbnail ${idx + 1}`}
-                className="w-full h-full object-cover"
-                onError={() => handleImageError(idx)}
-              />
+              <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>

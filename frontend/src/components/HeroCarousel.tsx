@@ -1,77 +1,61 @@
-/**
- * HeroCarousel.tsx — Auto-advancing hero banner carousel with manual navigation
- * and dot indicators. Slides are hardcoded with generated hero banner images.
- */
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from '@tanstack/react-router';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useNavigate } from '@tanstack/react-router';
 
-interface Slide {
-  image: string;
-  title: string;
-  subtitle: string;
-  cta: string;
-  ctaLink: string;
-}
-
-const SLIDES: Slide[] = [
+const slides = [
   {
-    image:    '/assets/generated/hero-banner-1.dim_1200x500.png',
-    title:    'Timeless Elegance',
-    subtitle: 'Discover our curated collection of luxury clothing',
-    cta:      'Shop Clothing',
-    ctaLink:  '/products',
+    image: '/assets/generated/hero-banner-1.dim_1200x500.png',
+    title: 'Luxury Redefined',
+    subtitle: 'Discover our exclusive collection of premium fashion',
+    cta: 'Shop Now',
+    category: '',
   },
   {
-    image:    '/assets/generated/hero-banner-2.dim_1200x500.png',
-    title:    'Precious Adornments',
-    subtitle: 'Fine jewelry crafted for the discerning individual',
-    cta:      'Explore Jewelry',
-    ctaLink:  '/products',
+    image: '/assets/generated/hero-banner-2.dim_1200x500.png',
+    title: 'Exquisite Jewelry',
+    subtitle: 'Timeless pieces crafted for the modern connoisseur',
+    cta: 'Explore Jewelry',
+    category: 'Jewelry',
   },
   {
-    image:    '/assets/generated/hero-banner-3.dim_1200x500.png',
-    title:    'Signature Scents',
-    subtitle: 'Rare and exquisite fragrances from around the world',
-    cta:      'Discover Perfumes',
-    ctaLink:  '/products',
+    image: '/assets/generated/hero-banner-3.dim_1200x500.png',
+    title: 'Signature Fragrances',
+    subtitle: 'Indulge in our curated selection of luxury perfumes',
+    cta: 'Shop Perfumes',
+    category: 'Perfumes',
   },
 ];
 
-const AUTO_ADVANCE_MS = 5000;
-
 export default function HeroCarousel() {
   const [current, setCurrent] = useState(0);
-  const [paused, setPaused] = useState(false);
-
-  const next = useCallback(() => {
-    setCurrent((c) => (c + 1) % SLIDES.length);
-  }, []);
-
-  const prev = useCallback(() => {
-    setCurrent((c) => (c - 1 + SLIDES.length) % SLIDES.length);
-  }, []);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (paused) return;
-    const timer = setInterval(next, AUTO_ADVANCE_MS);
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % slides.length);
+    }, 5000);
     return () => clearInterval(timer);
-  }, [paused, next]);
+  }, []);
+
+  const prev = () => setCurrent((c) => (c - 1 + slides.length) % slides.length);
+  const next = () => setCurrent((c) => (c + 1) % slides.length);
+
+  const handleCta = () => {
+    const slide = slides[current];
+    if (slide.category) {
+      navigate({ to: '/products', search: { category: slide.category } });
+    } else {
+      navigate({ to: '/products' });
+    }
+  };
 
   return (
-    <div
-      className="relative w-full overflow-hidden bg-charcoal-900"
-      style={{ aspectRatio: '1200/500' }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      {/* Slides */}
-      {SLIDES.map((slide, idx) => (
+    <div className="relative w-full overflow-hidden rounded-2xl shadow-luxury-lg" style={{ height: '420px' }}>
+      {slides.map((slide, idx) => (
         <div
           key={idx}
           className={`absolute inset-0 transition-opacity duration-700 ${
-            idx === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            idx === current ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
           <img
@@ -79,59 +63,47 @@ export default function HeroCarousel() {
             alt={slide.title}
             className="w-full h-full object-cover"
           />
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-charcoal-900/70 via-charcoal-900/30 to-transparent" />
-
-          {/* Content */}
-          <div className="absolute inset-0 flex items-center">
-            <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full">
-              <div className="max-w-lg animate-fade-in">
-                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
-                  {slide.title}
-                </h1>
-                <p className="text-white/80 text-base sm:text-lg mb-6">
-                  {slide.subtitle}
-                </p>
-                <Button
-                  asChild
-                  className="bg-accent text-accent-foreground hover:bg-gold-600 font-semibold px-6 py-3 rounded-sm gold-shadow"
-                >
-                  <Link to={slide.ctaLink as never}>{slide.cta}</Link>
-                </Button>
-              </div>
-            </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+          <div className="absolute inset-0 flex flex-col justify-center px-10 md:px-16">
+            <h2 className="font-display text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+              {slide.title}
+            </h2>
+            <p className="text-white/90 text-base md:text-lg mb-6 max-w-md drop-shadow">
+              {slide.subtitle}
+            </p>
+            <button
+              onClick={handleCta}
+              className="self-start px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors shadow-lg"
+            >
+              {slide.cta}
+            </button>
           </div>
         </div>
       ))}
 
-      {/* Prev / Next */}
+      {/* Navigation Arrows */}
       <button
         onClick={prev}
-        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm flex items-center justify-center transition-colors"
-        aria-label="Previous slide"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors"
       >
-        <ChevronLeft className="h-5 w-5 text-white" />
+        <ChevronLeft className="h-5 w-5" />
       </button>
       <button
         onClick={next}
-        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm flex items-center justify-center transition-colors"
-        aria-label="Next slide"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors"
       >
-        <ChevronRight className="h-5 w-5 text-white" />
+        <ChevronRight className="h-5 w-5" />
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-        {SLIDES.map((_, idx) => (
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+        {slides.map((_, idx) => (
           <button
             key={idx}
             onClick={() => setCurrent(idx)}
-            className={`rounded-full transition-all duration-300 ${
-              idx === current
-                ? 'w-6 h-2 bg-accent'
-                : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+            className={`h-2 rounded-full transition-all ${
+              idx === current ? 'w-6 bg-primary' : 'w-2 bg-white/60'
             }`}
-            aria-label={`Go to slide ${idx + 1}`}
           />
         ))}
       </div>

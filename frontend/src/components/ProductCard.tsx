@@ -1,168 +1,111 @@
-/**
- * ProductCard.tsx — Product card with image, discount badge, wishlist toggle,
- * and navigation to product detail page. Exports ProductCardSkeleton as a
- * named export for use in loading states.
- */
-import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import { Heart, ShoppingCart, Star } from 'lucide-react';
-import { toast } from 'sonner';
-import { useInternetIdentity } from '@/hooks/useInternetIdentity';
-import { useAddToCart, useAddToWishlist, useGetWishlist } from '@/hooks/useQueries';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useNavigate } from '@tanstack/react-router';
+import { Heart, ShoppingCart } from 'lucide-react';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useAddToCart, useAddToWishlist, useGetWishlist } from '../hooks/useQueries';
+import type { Product } from '../backend';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Product } from '@/backend';
-import { formatPrice } from '@/utils/urlParams';
 
 interface ProductCardProps {
   product: Product;
 }
 
+export function ProductCardSkeleton() {
+  return (
+    <div className="bg-surface rounded-xl overflow-hidden shadow-luxury">
+      <Skeleton className="h-56 w-full" />
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-8 w-full mt-2" />
+      </div>
+    </div>
+  );
+}
+
 export default function ProductCard({ product }: ProductCardProps) {
+  const navigate = useNavigate();
   const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+
   const { data: wishlist } = useGetWishlist();
   const addToCart = useAddToCart();
   const addToWishlist = useAddToWishlist();
-  const [imageError, setImageError] = useState(false);
 
-  const isAuthenticated = !!identity;
   const isWishlisted = wishlist?.productIds?.some((id) => id === product.id) ?? false;
-
   const discountedPrice =
     product.discountPercent > 0
       ? product.price * (1 - Number(product.discountPercent) / 100)
       : product.price;
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!isAuthenticated) {
-      toast.error('Please login to add items to cart');
-      return;
-    }
-    try {
-      await addToCart.mutateAsync({
-        productId: product.id,
-        quantity: 1n,
-        variant: { quantity: 1n },
-      });
-      toast.success(`${product.name} added to cart`);
-    } catch {
-      toast.error('Failed to add to cart');
-    }
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated) return;
+    addToCart.mutate({
+      productId: product.id,
+      quantity: 1n,
+      variant: { quantity: 1n },
+    });
   };
 
-  const handleWishlist = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!isAuthenticated) {
-      toast.error('Please login to save to wishlist');
-      return;
-    }
-    try {
-      await addToWishlist.mutateAsync(product.id);
-      toast.success(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist');
-    } catch {
-      toast.error('Failed to update wishlist');
-    }
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated) return;
+    addToWishlist.mutate(product.id);
   };
 
   return (
-    <Link
-      to="/products/$productId"
-      params={{ productId: product.id.toString() }}
-      className="group block bg-card rounded-lg overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300"
+    <div
+      onClick={() => navigate({ to: '/products/$productId', params: { productId: product.id.toString() } })}
+      className="bg-surface rounded-xl overflow-hidden shadow-luxury hover:shadow-luxury-lg transition-all duration-300 cursor-pointer group"
     >
-      {/* Image Container */}
-      <div className="relative aspect-[3/4] bg-secondary overflow-hidden">
-        {!imageError && product.imageUrls?.[0] ? (
-          <img
-            src={product.imageUrls[0]}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-secondary">
-            <ShoppingCart className="h-12 w-12 text-muted-foreground/30" />
-          </div>
-        )}
-
-        {/* Discount Badge */}
+      <div className="relative overflow-hidden" style={{ height: '220px' }}>
+        <img
+          src={product.imageUrls[0] || '/assets/generated/hero-banner-1.dim_1200x500.png'}
+          alt={product.name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
         {product.discountPercent > 0 && (
-          <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-xs font-bold">
+          <span className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">
             -{Number(product.discountPercent)}%
-          </Badge>
+          </span>
         )}
-
-        {/* Wishlist Button */}
-        <button
-          onClick={handleWishlist}
-          disabled={addToWishlist.isPending}
-          className={`absolute top-2 right-2 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-200 ${
-            isWishlisted
-              ? 'bg-accent text-accent-foreground'
-              : 'bg-white/80 text-charcoal-600 hover:bg-accent hover:text-accent-foreground'
-          }`}
-          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
-        </button>
-
-        {/* Quick Add Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <Button
-            onClick={handleAddToCart}
-            disabled={addToCart.isPending || Number(product.stock) === 0}
-            className="w-full rounded-none bg-charcoal-900/90 hover:bg-accent text-white hover:text-accent-foreground text-sm py-2 h-auto"
+        {isAuthenticated && (
+          <button
+            onClick={handleWishlist}
+            className={`absolute top-2 right-2 p-2 rounded-full transition-colors ${
+              isWishlisted
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-black/40 text-white hover:bg-primary hover:text-primary-foreground'
+            }`}
           >
-            {Number(product.stock) === 0 ? 'Out of Stock' : 'Quick Add'}
-          </Button>
-        </div>
+            <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+          </button>
+        )}
       </div>
-
-      {/* Info */}
-      <div className="p-3">
-        <p className="text-xs text-muted-foreground mb-1">{product.category}</p>
-        <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-2 group-hover:text-accent transition-colors">
+      <div className="p-4">
+        <h3 className="font-display font-semibold text-foreground text-sm mb-1 line-clamp-2">
           {product.name}
         </h3>
-
-        {/* Rating placeholder */}
-        <div className="flex items-center gap-1 mb-2">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={`h-3 w-3 ${star <= 4 ? 'fill-accent text-accent' : 'text-muted-foreground'}`}
-            />
-          ))}
-        </div>
-
-        {/* Price */}
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-foreground">
-            {formatPrice(discountedPrice)}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-primary font-bold">
+            ${discountedPrice.toFixed(2)}
           </span>
           {product.discountPercent > 0 && (
-            <span className="text-xs text-muted-foreground line-through">
-              {formatPrice(product.price)}
+            <span className="text-muted-foreground text-xs line-through">
+              ${product.price.toFixed(2)}
             </span>
           )}
         </div>
-      </div>
-    </Link>
-  );
-}
-
-/** Skeleton placeholder shown while products are loading. */
-export function ProductCardSkeleton() {
-  return (
-    <div className="bg-card rounded-lg overflow-hidden shadow-card">
-      <Skeleton className="aspect-[3/4] w-full" />
-      <div className="p-3 space-y-2">
-        <Skeleton className="h-3 w-16" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-3 w-24" />
-        <Skeleton className="h-4 w-20" />
+        {isAuthenticated && (
+          <button
+            onClick={handleAddToCart}
+            disabled={addToCart.isPending}
+            className="w-full flex items-center justify-center gap-2 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {addToCart.isPending ? 'Adding...' : 'Add to Cart'}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -403,3 +403,4 @@ actor {
 
   public func upgrade() : async () { Runtime.trap("Not allowed to upgrade canister") };
 };
+

@@ -1,199 +1,191 @@
-import { useState } from 'react';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
-import type { Product } from '../backend';
-import { useAddProduct, useUpdateProduct } from '../hooks/useQueries';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAddProduct, useUpdateProduct } from '../hooks/useQueries';
+import type { Product } from '../backend';
 
 interface ProductFormModalProps {
-  mode: 'create' | 'edit';
-  product?: Product;
+  open: boolean;
   onClose: () => void;
+  product?: Product | null;
 }
 
-const CATEGORIES = ['Clothes', 'Perfumes', 'Jewelry'];
-const SUB_CATEGORIES: Record<string, string[]> = {
-  Clothes: ['Men', 'Women', 'Kids'],
-  Perfumes: ['Floral', 'Woody', 'Fresh', 'Oriental'],
-  Jewelry: ['Necklaces', 'Rings', 'Earrings', 'Bracelets'],
+const emptyProduct: Omit<Product, 'id' | 'createdAt'> = {
+  name: '',
+  description: '',
+  category: '',
+  subCategory: '',
+  imageUrls: [],
+  price: 0,
+  discountPercent: 0n,
+  stock: 0n,
+  variants: [],
 };
 
-export default function ProductFormModal({ mode, product, onClose }: ProductFormModalProps) {
+export default function ProductFormModal({ open, onClose, product }: ProductFormModalProps) {
+  const [form, setForm] = useState(emptyProduct);
+  const [imageUrlInput, setImageUrlInput] = useState('');
   const addProduct = useAddProduct();
   const updateProduct = useUpdateProduct();
 
-  const [name, setName] = useState(product?.name ?? '');
-  const [description, setDescription] = useState(product?.description ?? '');
-  const [category, setCategory] = useState(product?.category ?? 'Clothes');
-  const [subCategory, setSubCategory] = useState(product?.subCategory ?? '');
-  const [imageUrlsText, setImageUrlsText] = useState(product?.imageUrls?.join('\n') ?? '');
-  const [price, setPrice] = useState(product?.price?.toString() ?? '');
-  const [discountPercent, setDiscountPercent] = useState(product?.discountPercent?.toString() ?? '0');
-  const [stock, setStock] = useState(product?.stock?.toString() ?? '');
-  const [variants, setVariants] = useState<{ size: string; color: string; quantity: string }[]>(
-    product?.variants?.map((v) => ({
-      size: v.size ?? '',
-      color: v.color ?? '',
-      quantity: v.quantity?.toString() ?? '0',
-    })) ?? []
-  );
-
-  const inputClass = "bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold/60 h-9 text-sm";
-
-  const addVariant = () => setVariants([...variants, { size: '', color: '', quantity: '1' }]);
-  const removeVariant = (i: number) => setVariants(variants.filter((_, idx) => idx !== i));
-  const updateVariant = (i: number, field: string, val: string) => {
-    setVariants(variants.map((v, idx) => idx === i ? { ...v, [field]: val } : v));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !price || !stock) {
-      toast.error('Please fill in all required fields');
-      return;
+  useEffect(() => {
+    if (product) {
+      setForm({
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        subCategory: product.subCategory,
+        imageUrls: product.imageUrls,
+        price: product.price,
+        discountPercent: product.discountPercent,
+        stock: product.stock,
+        variants: product.variants,
+      });
+      setImageUrlInput(product.imageUrls.join('\n'));
+    } else {
+      setForm(emptyProduct);
+      setImageUrlInput('');
     }
+  }, [product, open]);
 
-    const imageUrls = imageUrlsText.split('\n').map((u) => u.trim()).filter(Boolean);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const imageUrls = imageUrlInput
+      .split('\n')
+      .map((u) => u.trim())
+      .filter(Boolean);
+
     const productData: Product = {
-      id: product?.id ?? BigInt(0),
-      name,
-      description,
-      category,
-      subCategory,
+      ...form,
+      id: product?.id ?? 0n,
       imageUrls,
-      price: parseFloat(price),
-      discountPercent: BigInt(parseInt(discountPercent) || 0),
-      stock: BigInt(parseInt(stock)),
-      variants: variants.map((v) => ({
-        size: v.size || undefined,
-        color: v.color || undefined,
-        quantity: BigInt(parseInt(v.quantity) || 0),
-      })),
-      createdAt: product?.createdAt ?? BigInt(Date.now()) * BigInt(1_000_000),
+      createdAt: product?.createdAt ?? BigInt(Date.now()) * 1_000_000n,
     };
 
-    try {
-      if (mode === 'create') {
-        await addProduct.mutateAsync(productData);
-        toast.success('Product added successfully!');
-      } else if (product) {
-        await updateProduct.mutateAsync({ id: product.id, product: productData });
-        toast.success('Product updated successfully!');
-      }
-      onClose();
-    } catch {
-      toast.error('Failed to save product. Make sure you are an admin.');
+    if (product) {
+      updateProduct.mutate(
+        { id: product.id, product: productData },
+        { onSuccess: onClose }
+      );
+    } else {
+      addProduct.mutate(productData, { onSuccess: onClose });
     }
   };
 
   const isPending = addProduct.isPending || updateProduct.isPending;
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] p-0">
-        <DialogHeader className="px-6 pt-6 pb-0">
-          <DialogTitle className="font-serif text-xl text-foreground">
-            {mode === 'create' ? 'Add New Product' : 'Edit Product'}
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-2xl bg-surface border-border max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display text-xl text-foreground">
+            {product ? 'Edit Product' : 'Add New Product'}
           </DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[75vh]">
-          <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-foreground/80 text-xs">Product Name *</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Silk Evening Dress" className={inputClass} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-foreground/80 text-xs">Category *</Label>
-                <Select value={category} onValueChange={(v) => { setCategory(v); setSubCategory(''); }}>
-                  <SelectTrigger className={inputClass}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    {CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c} className="text-foreground text-sm">{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-foreground/80 text-xs">Sub-Category</Label>
-                <Select value={subCategory} onValueChange={setSubCategory}>
-                  <SelectTrigger className={inputClass}>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    {(SUB_CATEGORIES[category] ?? []).map((s) => (
-                      <SelectItem key={s} value={s} className="text-foreground text-sm">{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-foreground/80 text-xs">Price (₹) *</Label>
-                <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="2999" className={inputClass} required min="0" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-foreground/80 text-xs">Discount %</Label>
-                <Input type="number" value={discountPercent} onChange={(e) => setDiscountPercent(e.target.value)} placeholder="0" className={inputClass} min="0" max="100" />
-              </div>
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-foreground/80 text-xs">Stock *</Label>
-                <Input type="number" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="100" className={inputClass} required min="0" />
-              </div>
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-foreground/80 text-xs">Description</Label>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Product description..."
-                  className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold/60 text-sm resize-none"
-                  rows={3}
-                />
-              </div>
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-foreground/80 text-xs">Image URLs (one per line)</Label>
-                <Textarea
-                  value={imageUrlsText}
-                  onChange={(e) => setImageUrlsText(e.target.value)}
-                  placeholder={"https://example.com/image1.jpg\nhttps://example.com/image2.jpg"}
-                  className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold/60 text-sm resize-none"
-                  rows={3}
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <Label className="text-sm font-medium text-foreground mb-1 block">Product Name *</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Product name"
+                className="bg-muted border-border"
+                required
+              />
             </div>
-
-            {/* Variants */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-foreground/80 text-xs">Variants</Label>
-                <Button type="button" onClick={addVariant} variant="ghost" size="sm" className="text-gold hover:text-gold-light text-xs h-7">
-                  <Plus className="h-3 w-3 mr-1" /> Add
-                </Button>
-              </div>
-              {variants.map((v, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <Input value={v.size} onChange={(e) => updateVariant(i, 'size', e.target.value)} placeholder="Size (S/M/L)" className={`${inputClass} flex-1`} />
-                  <Input value={v.color} onChange={(e) => updateVariant(i, 'color', e.target.value)} placeholder="Color" className={`${inputClass} flex-1`} />
-                  <Input type="number" value={v.quantity} onChange={(e) => updateVariant(i, 'quantity', e.target.value)} placeholder="Qty" className={`${inputClass} w-16`} min="0" />
-                  <Button type="button" onClick={() => removeVariant(i)} variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive shrink-0">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ))}
+            <div className="sm:col-span-2">
+              <Label className="text-sm font-medium text-foreground mb-1 block">Description</Label>
+              <Textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Product description"
+                className="bg-muted border-border resize-none"
+                rows={3}
+              />
             </div>
-
-            <Button type="submit" disabled={isPending} className="w-full bg-gold text-charcoal hover:bg-gold-light font-semibold">
-              {isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : mode === 'create' ? 'Add Product' : 'Save Changes'}
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-1 block">Category *</Label>
+              <Input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                placeholder="e.g. Clothes"
+                className="bg-muted border-border"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-1 block">Sub Category</Label>
+              <Input
+                value={form.subCategory}
+                onChange={(e) => setForm({ ...form, subCategory: e.target.value })}
+                placeholder="e.g. Dresses"
+                className="bg-muted border-border"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-1 block">Price ($) *</Label>
+              <Input
+                type="number"
+                min={0}
+                step={0.01}
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
+                className="bg-muted border-border"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-1 block">Discount (%)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={Number(form.discountPercent)}
+                onChange={(e) => setForm({ ...form, discountPercent: BigInt(parseInt(e.target.value) || 0) })}
+                className="bg-muted border-border"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-foreground mb-1 block">Stock</Label>
+              <Input
+                type="number"
+                min={0}
+                value={Number(form.stock)}
+                onChange={(e) => setForm({ ...form, stock: BigInt(parseInt(e.target.value) || 0) })}
+                className="bg-muted border-border"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="text-sm font-medium text-foreground mb-1 block">
+                Image URLs (one per line)
+              </Label>
+              <Textarea
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                placeholder="https://example.com/image1.jpg"
+                className="bg-muted border-border resize-none"
+                rows={3}
+              />
+            </div>
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
             </Button>
-          </form>
-        </ScrollArea>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Saving...' : product ? 'Update Product' : 'Add Product'}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

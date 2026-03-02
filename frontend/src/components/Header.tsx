@@ -1,63 +1,21 @@
-/**
- * Header.tsx — Sticky navigation header with logo, nav links,
- * search bar, cart badge, wishlist, profile, admin, and login/logout.
- */
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import {
-  ShoppingCart,
-  Heart,
-  User,
-  Search,
-  Menu,
-  X,
-  Shield,
-  LogOut,
-  LogIn,
-  Loader2,
-} from 'lucide-react';
-import { useInternetIdentity } from '@/hooks/useInternetIdentity';
+import { ShoppingCart, Heart, User, Search, Menu, X, Shield } from 'lucide-react';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
-import { useGetCart } from '@/hooks/useQueries';
+import { useGetCart } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-
-const NAV_LINKS = [
-  { label: 'All Products', to: '/products' },
-  { label: 'Clothing',     to: '/products?category=Clothing' },
-  { label: 'Jewelry',      to: '/products?category=Jewelry' },
-  { label: 'Perfumes',     to: '/products?category=Perfumes' },
-];
 
 export default function Header() {
-  const navigate = useNavigate();
+  const { identity, login, clear, loginStatus } = useInternetIdentity();
   const queryClient = useQueryClient();
-  const { login, clear, loginStatus, identity } = useInternetIdentity();
-  const { data: cart } = useGetCart();
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const isAuthenticated = !!identity;
-  const isLoggingIn = loginStatus === 'logging-in';
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
-  const cartCount = cart?.items?.reduce((sum, item) => sum + Number(item.quantity), 0) ?? 0;
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate({ to: '/search', search: { q: searchQuery.trim() } as never });
-      setSearchQuery('');
-    }
-  };
+  const { data: cart } = useGetCart();
+  const cartCount = cart?.items?.length ?? 0;
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -76,197 +34,194 @@ export default function Header() {
     }
   };
 
-  return (
-    <header className="sticky top-0 z-50 bg-card border-b border-border shadow-card">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate({ to: '/search', search: { q: searchQuery.trim() } });
+      setSearchQuery('');
+    }
+  };
 
-          {/* ── Logo ─────────────────────────────────────────── */}
+  return (
+    <header className="sticky top-0 z-50 bg-surface border-b border-border shadow-luxury">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img
               src="/assets/generated/brand-logo.dim_256x256.png"
               alt="Luxe Store"
-              className="h-9 w-9 object-contain"
+              className="h-10 w-10 object-contain rounded-full"
             />
-            <span className="font-serif text-xl font-semibold tracking-wide text-foreground hidden sm:block">
+            <span className="font-display text-xl font-bold text-primary hidden sm:block">
               Luxe Store
             </span>
           </Link>
 
-          {/* ── Desktop Nav ──────────────────────────────────── */}
-          <nav className="hidden lg:flex items-center gap-6">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                to={link.to as never}
-                className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link
+              to="/products"
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+            >
+              Shop
+            </Link>
+            <Link
+              to="/products"
+              search={{ category: 'Clothes' }}
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+            >
+              Clothes
+            </Link>
+            <Link
+              to="/products"
+              search={{ category: 'Jewelry' }}
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+            >
+              Jewelry
+            </Link>
+            <Link
+              to="/products"
+              search={{ category: 'Perfumes' }}
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+            >
+              Perfumes
+            </Link>
           </nav>
 
-          {/* ── Search ───────────────────────────────────────── */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xs">
+          {/* Search */}
+          <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2 flex-1 max-w-xs mx-4">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search products…"
+              <input
+                type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 bg-secondary border-border text-sm"
+                placeholder="Search products..."
+                className="w-full pl-9 pr-4 py-2 text-sm bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </form>
 
-          {/* ── Actions ──────────────────────────────────────── */}
-          <div className="flex items-center gap-1">
-            {/* Wishlist */}
+          {/* Actions */}
+          <div className="flex items-center gap-2">
             {isAuthenticated && (
-              <Button variant="ghost" size="icon" asChild>
+              <>
                 <Link to="/wishlist">
-                  <Heart className="h-5 w-5" />
-                  <span className="sr-only">Wishlist</span>
-                </Link>
-              </Button>
-            )}
-
-            {/* Cart */}
-            <Button variant="ghost" size="icon" className="relative" asChild>
-              <Link to="/cart">
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center">
-                    {cartCount > 9 ? '9+' : cartCount}
-                  </span>
-                )}
-                <span className="sr-only">Cart</span>
-              </Link>
-            </Button>
-
-            {/* User Menu */}
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                    <span className="sr-only">Account</span>
+                  <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                    <Heart className="h-5 w-5" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/orders" className="cursor-pointer">
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      My Orders
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin" className="cursor-pointer">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Admin Panel
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleAuth} className="cursor-pointer text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleAuth}
-                disabled={isLoggingIn}
-                className="gap-2"
-              >
-                {isLoggingIn ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <LogIn className="h-4 w-4" />
-                )}
-                <span className="hidden sm:inline">
-                  {isLoggingIn ? 'Logging in…' : 'Login'}
-                </span>
-              </Button>
+                </Link>
+                <Link to="/cart" className="relative">
+                  <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                    <ShoppingCart className="h-5 w-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+                <Link to="/profile">
+                  <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link to="/admin">
+                  <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                    <Shield className="h-5 w-5" />
+                  </Button>
+                </Link>
+              </>
             )}
-
-            {/* Mobile Menu */}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-72">
-                <div className="flex items-center justify-between mb-6">
-                  <span className="font-serif text-lg font-semibold">Menu</span>
-                  <SheetClose asChild>
-                    <Button variant="ghost" size="icon">
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </SheetClose>
-                </div>
-
-                {/* Mobile Search */}
-                <form onSubmit={handleSearch} className="mb-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search products…"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                </form>
-
-                <nav className="flex flex-col gap-1">
-                  {NAV_LINKS.map((link) => (
-                    <SheetClose asChild key={link.label}>
-                      <Link
-                        to={link.to as never}
-                        className="px-3 py-2 rounded-md text-sm font-medium hover:bg-secondary transition-colors"
-                      >
-                        {link.label}
-                      </Link>
-                    </SheetClose>
-                  ))}
-                  <div className="my-2 border-t border-border" />
-                  {isAuthenticated && (
-                    <>
-                      <SheetClose asChild>
-                        <Link to="/profile" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-secondary transition-colors">
-                          Profile
-                        </Link>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Link to="/orders" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-secondary transition-colors">
-                          My Orders
-                        </Link>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Link to="/wishlist" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-secondary transition-colors">
-                          Wishlist
-                        </Link>
-                      </SheetClose>
-                    </>
-                  )}
-                </nav>
-              </SheetContent>
-            </Sheet>
+            <Button
+              onClick={handleAuth}
+              disabled={loginStatus === 'logging-in'}
+              variant={isAuthenticated ? 'outline' : 'default'}
+              size="sm"
+              className={isAuthenticated ? '' : 'bg-primary text-primary-foreground hover:bg-primary/90'}
+            >
+              {loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden text-foreground"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border py-4 space-y-3">
+            <form onSubmit={handleSearch} className="flex items-center gap-2">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search products..."
+                  className="w-full pl-9 pr-4 py-2 text-sm bg-muted border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+            </form>
+            <nav className="flex flex-col gap-2">
+              <Link
+                to="/products"
+                className="text-sm font-medium text-foreground hover:text-primary py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Shop All
+              </Link>
+              <Link
+                to="/products"
+                search={{ category: 'Clothes' }}
+                className="text-sm font-medium text-foreground hover:text-primary py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Clothes
+              </Link>
+              <Link
+                to="/products"
+                search={{ category: 'Jewelry' }}
+                className="text-sm font-medium text-foreground hover:text-primary py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Jewelry
+              </Link>
+              <Link
+                to="/products"
+                search={{ category: 'Perfumes' }}
+                className="text-sm font-medium text-foreground hover:text-primary py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Perfumes
+              </Link>
+              {isAuthenticated && (
+                <>
+                  <Link
+                    to="/orders"
+                    className="text-sm font-medium text-foreground hover:text-primary py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    My Orders
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="text-sm font-medium text-foreground hover:text-primary py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                </>
+              )}
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

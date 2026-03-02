@@ -1,129 +1,113 @@
-import { Loader2 } from 'lucide-react';
-import { useGetAllOrders, useUpdateOrderStatus } from '../hooks/useQueries';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGetAllOrders, useUpdateOrderStatus } from '../hooks/useQueries';
 import { OrderStatus } from '../backend';
-import { toast } from 'sonner';
 
-const STATUS_LABELS: Record<string, string> = {
-  [OrderStatus.placed]: 'Placed',
-  [OrderStatus.confirmed]: 'Confirmed',
-  [OrderStatus.shipped]: 'Shipped',
-  [OrderStatus.outForDelivery]: 'Out for Delivery',
-  [OrderStatus.delivered]: 'Delivered',
-  [OrderStatus.cancelled]: 'Cancelled',
+const statusColors: Record<string, string> = {
+  placed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  confirmed: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  shipped: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  outForDelivery: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  delivered: 'bg-green-500/20 text-green-400 border-green-500/30',
+  cancelled: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
-
-const STATUS_COLORS: Record<string, string> = {
-  [OrderStatus.placed]: 'border-blue-400/40 text-blue-400',
-  [OrderStatus.confirmed]: 'border-yellow-400/40 text-yellow-400',
-  [OrderStatus.shipped]: 'border-purple-400/40 text-purple-400',
-  [OrderStatus.outForDelivery]: 'border-orange-400/40 text-orange-400',
-  [OrderStatus.delivered]: 'border-green-400/40 text-green-400',
-  [OrderStatus.cancelled]: 'border-red-400/40 text-red-400',
-};
-
-const UPDATABLE_STATUSES = [
-  { value: OrderStatus.confirmed, label: 'Confirmed' },
-  { value: OrderStatus.shipped, label: 'Shipped' },
-  { value: OrderStatus.outForDelivery, label: 'Out for Delivery' },
-  { value: OrderStatus.delivered, label: 'Delivered' },
-  { value: OrderStatus.cancelled, label: 'Cancelled' },
-];
 
 export default function OrderManagementTable() {
-  const { data: orders, isLoading } = useGetAllOrders();
+  const { data: orders = [], isLoading } = useGetAllOrders();
   const updateStatus = useUpdateOrderStatus();
 
-  const handleStatusChange = async (orderId: bigint, status: OrderStatus) => {
-    try {
-      await updateStatus.mutateAsync({ orderId, status });
-      toast.success('Order status updated');
-    } catch {
-      toast.error('Failed to update order status');
-    }
-  };
-
   if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-gold" />
-      </div>
-    );
+    return <div className="text-muted-foreground text-sm py-8 text-center">Loading orders...</div>;
   }
 
-  const sortedOrders = [...(orders ?? [])].sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
-
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground font-sans">{sortedOrders.length} orders</p>
-
-      <div className="rounded-lg border border-border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted hover:bg-muted">
-              <TableHead className="text-muted-foreground text-xs font-sans">Order ID</TableHead>
-              <TableHead className="text-muted-foreground text-xs font-sans">Date</TableHead>
-              <TableHead className="text-muted-foreground text-xs font-sans">Items</TableHead>
-              <TableHead className="text-muted-foreground text-xs font-sans">Total</TableHead>
-              <TableHead className="text-muted-foreground text-xs font-sans">Status</TableHead>
-              <TableHead className="text-muted-foreground text-xs font-sans">Update Status</TableHead>
+    <div className="rounded-xl overflow-hidden border border-border">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="text-foreground font-semibold">Order ID</TableHead>
+            <TableHead className="text-foreground font-semibold">Items</TableHead>
+            <TableHead className="text-foreground font-semibold">Total</TableHead>
+            <TableHead className="text-foreground font-semibold">Status</TableHead>
+            <TableHead className="text-foreground font-semibold">Date</TableHead>
+            <TableHead className="text-foreground font-semibold">Update Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                No orders yet.
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedOrders.map((order) => (
-              <TableRow key={order.id.toString()} className="border-border hover:bg-muted/50">
-                <TableCell>
-                  <p className="text-sm font-sans font-medium text-foreground">#{order.id.toString()}</p>
-                  <p className="text-xs text-muted-foreground font-mono">{order.userId.toString().slice(0, 12)}...</p>
-                </TableCell>
-                <TableCell>
-                  <p className="text-xs text-muted-foreground font-sans">
-                    {new Date(Number(order.createdAt) / 1_000_000).toLocaleDateString('en-IN')}
-                  </p>
-                </TableCell>
-                <TableCell>
-                  <p className="text-sm font-sans text-foreground">{order.items.length}</p>
-                </TableCell>
-                <TableCell>
-                  <p className="text-sm font-sans text-gold font-medium">₹{order.totalAmount.toFixed(0)}</p>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={`text-xs ${STATUS_COLORS[order.status] ?? 'border-border text-muted-foreground'}`}>
-                    {STATUS_LABELS[order.status] ?? order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Select
-                    value={order.status}
-                    onValueChange={(val) => handleStatusChange(order.id, val as OrderStatus)}
-                    disabled={updateStatus.isPending}
-                  >
-                    <SelectTrigger className="w-40 h-8 text-xs bg-card border-border text-foreground">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-border">
-                      {UPDATABLE_STATUSES.map((s) => (
-                        <SelectItem key={s.value} value={s.value} className="text-foreground text-xs">
-                          {s.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-              </TableRow>
-            ))}
-            {sortedOrders.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8 font-sans text-sm">
-                  No orders yet.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+          ) : (
+            orders.map((order) => {
+              const statusKey = String(order.status);
+              return (
+                <TableRow key={order.id.toString()} className="hover:bg-muted/30">
+                  <TableCell className="font-mono text-sm text-muted-foreground">
+                    #{order.id.toString()}
+                  </TableCell>
+                  <TableCell className="text-sm text-foreground">
+                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                  </TableCell>
+                  <TableCell className="font-medium text-primary">
+                    ${order.totalAmount.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs capitalize ${statusColors[statusKey] || ''}`}
+                    >
+                      {statusKey}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {new Date(Number(order.createdAt) / 1_000_000).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={statusKey}
+                      onValueChange={(val) =>
+                        updateStatus.mutate({
+                          orderId: order.id,
+                          status: val as OrderStatus,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-36 h-8 text-xs bg-muted border-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="placed">Placed</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="outForDelivery">Out for Delivery</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }

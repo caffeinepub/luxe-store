@@ -1,214 +1,138 @@
-/**
- * ProductListing.tsx — Product catalog page with responsive filter panel
- * (desktop sidebar, mobile sheet), sort dropdown, and product grid.
- * Derives categories/subCategories from loaded products for FilterPanel.
- */
 import { useState, useMemo } from 'react';
 import { useSearch } from '@tanstack/react-router';
-import { SlidersHorizontal, X } from 'lucide-react';
-import { useGetAllProducts } from '@/hooks/useQueries';
-import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
-import FilterPanel, { type FilterState } from '@/components/FilterPanel';
-import SortDropdown from '@/components/SortDropdown';
+import { SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import type { Product } from '@/backend';
-
-const MAX_PRICE = 5000;
-
-function sortProducts(products: Product[], sortBy: string): Product[] {
-  const sorted = [...products];
-  switch (sortBy) {
-    case 'price-asc':
-      return sorted.sort((a, b) => a.price - b.price);
-    case 'price-desc':
-      return sorted.sort((a, b) => b.price - a.price);
-    case 'newest':
-      return sorted.sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
-    default:
-      return sorted;
-  }
-}
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useGetAllProducts } from '../hooks/useQueries';
+import ProductCard, { ProductCardSkeleton } from '../components/ProductCard';
+import FilterPanel from '../components/FilterPanel';
+import SortDropdown, { type SortOption } from '../components/SortDropdown';
 
 export default function ProductListing() {
   const search = useSearch({ from: '/products' });
-  const categoryParam = (search as Record<string, string>).category ?? '';
+  const initialCategory = (search as Record<string, string>).category ?? '';
 
-  const [filters, setFilters] = useState<FilterState>({
-    category:    categoryParam,
-    subCategory: '',
-    minPrice:    0,
-    maxPrice:    MAX_PRICE,
-  });
-  const [sortBy, setSortBy] = useState('popularity');
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedSubCategory, setSelectedSubCategory] = useState('');
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const { data: products, isLoading } = useGetAllProducts();
+  const { data: products = [], isLoading } = useGetAllProducts();
 
-  // Derive unique categories and sub-categories from loaded products
-  const categories = useMemo(() => {
-    if (!products) return [];
-    return Array.from(new Set(products.map((p) => p.category))).filter(Boolean).sort();
-  }, [products]);
+  const categories = useMemo(
+    () => [...new Set(products.map((p) => p.category).filter(Boolean))],
+    [products]
+  );
 
   const subCategories = useMemo(() => {
-    if (!products) return [];
-    const filtered = filters.category
-      ? products.filter((p) => p.category === filters.category)
-      : products;
-    return Array.from(new Set(filtered.map((p) => p.subCategory))).filter(Boolean).sort();
-  }, [products, filters.category]);
+    if (!selectedCategory) return [...new Set(products.map((p) => p.subCategory).filter(Boolean))];
+    return [
+      ...new Set(
+        products
+          .filter((p) => p.category === selectedCategory)
+          .map((p) => p.subCategory)
+          .filter(Boolean)
+      ),
+    ];
+  }, [products, selectedCategory]);
 
-  const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    let result = products;
+  const filtered = useMemo(() => {
+    let result = [...products];
+    if (selectedCategory) result = result.filter((p) => p.category === selectedCategory);
+    if (selectedSubCategory) result = result.filter((p) => p.subCategory === selectedSubCategory);
+    result = result.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
-    if (filters.category) {
-      result = result.filter((p) => p.category === filters.category);
+    switch (sortBy) {
+      case 'price-asc':
+        result.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        result.sort((a, b) => b.price - a.price);
+        break;
+      case 'discount':
+        result.sort((a, b) => Number(b.discountPercent) - Number(a.discountPercent));
+        break;
+      case 'newest':
+      default:
+        result.sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
     }
-    if (filters.subCategory) {
-      result = result.filter((p) => p.subCategory === filters.subCategory);
-    }
-    if (filters.minPrice > 0) {
-      result = result.filter((p) => p.price >= filters.minPrice);
-    }
-    if (filters.maxPrice < MAX_PRICE) {
-      result = result.filter((p) => p.price <= filters.maxPrice);
-    }
-
-    return sortProducts(result, sortBy);
-  }, [products, filters, sortBy]);
-
-  const activeFilterCount = [
-    filters.category,
-    filters.subCategory,
-    filters.minPrice > 0 ? 'min' : '',
-    filters.maxPrice < MAX_PRICE ? 'max' : '',
-  ].filter(Boolean).length;
-
-  const pageTitle = filters.category || 'All Products';
+    return result;
+  }, [products, selectedCategory, selectedSubCategory, priceRange, sortBy]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-6">
-        <p className="text-xs text-accent uppercase tracking-widest mb-1">Shop</p>
-        <h1 className="font-serif text-2xl md:text-3xl font-semibold">{pageTitle}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-foreground">
+            {selectedCategory || 'All Products'}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{filtered.length} products</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <SortDropdown value={sortBy} onChange={setSortBy} />
+          <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="md:hidden gap-2">
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="bg-surface border-border w-72">
+              <SheetHeader>
+                <SheetTitle className="font-display text-foreground">Filters</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">
+                <FilterPanel
+                  selectedCategory={selectedCategory}
+                  selectedSubCategory={selectedSubCategory}
+                  priceRange={priceRange}
+                  onCategoryChange={setSelectedCategory}
+                  onSubCategoryChange={setSelectedSubCategory}
+                  onPriceRangeChange={setPriceRange}
+                  categories={categories}
+                  subCategories={subCategories}
+                  onClose={() => setMobileFilterOpen(false)}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <div className="flex gap-6">
-        {/* Desktop Filter Sidebar */}
-        <aside className="hidden lg:block w-56 shrink-0">
-          <div className="sticky top-24">
-            <FilterPanel
-              filters={filters}
-              onFiltersChange={setFilters}
-              categories={categories}
-              subCategories={subCategories}
-              maxPriceLimit={MAX_PRICE}
-            />
-          </div>
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:block w-64 shrink-0">
+          <FilterPanel
+            selectedCategory={selectedCategory}
+            selectedSubCategory={selectedSubCategory}
+            priceRange={priceRange}
+            onCategoryChange={setSelectedCategory}
+            onSubCategoryChange={setSelectedSubCategory}
+            onPriceRangeChange={setPriceRange}
+            categories={categories}
+            subCategories={subCategories}
+          />
         </aside>
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between mb-5 gap-3">
-            <div className="flex items-center gap-2">
-              {/* Mobile filter button */}
-              <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="lg:hidden border-border text-foreground h-9 gap-1.5 text-xs"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                    Filters
-                    {activeFilterCount > 0 && (
-                      <span className="bg-accent text-accent-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
-                        {activeFilterCount}
-                      </span>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="bg-card border-border w-72 p-4">
-                  <FilterPanel
-                    filters={filters}
-                    onFiltersChange={(f) => {
-                      setFilters(f);
-                      setFilterSheetOpen(false);
-                    }}
-                    categories={categories}
-                    subCategories={subCategories}
-                    maxPriceLimit={MAX_PRICE}
-                  />
-                </SheetContent>
-              </Sheet>
-
-              <p className="text-muted-foreground text-sm">
-                {isLoading ? '…' : `${filteredProducts.length} products`}
-              </p>
-            </div>
-
-            <SortDropdown value={sortBy} onChange={setSortBy} />
-          </div>
-
-          {/* Active filter chips */}
-          {(filters.category || filters.subCategory) && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {filters.category && (
-                <span className="flex items-center gap-1 bg-accent/15 text-accent text-xs px-2.5 py-1 rounded-full border border-accent/30">
-                  {filters.category}
-                  <button
-                    onClick={() => setFilters({ ...filters, category: '', subCategory: '' })}
-                    aria-label="Remove category filter"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              )}
-              {filters.subCategory && (
-                <span className="flex items-center gap-1 bg-accent/15 text-accent text-xs px-2.5 py-1 rounded-full border border-accent/30">
-                  {filters.subCategory}
-                  <button
-                    onClick={() => setFilters({ ...filters, subCategory: '' })}
-                    aria-label="Remove sub-category filter"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Grid */}
+        {/* Products Grid */}
+        <div className="flex-1">
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {Array.from({ length: 9 }).map((_, i) => (
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
-          ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id.toString()} product={product} />
-              ))}
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg font-medium">No products found</p>
+              <p className="text-sm mt-1">Try adjusting your filters</p>
             </div>
           ) : (
-            <div className="text-center py-20">
-              <p className="font-serif text-xl mb-2">No products found</p>
-              <p className="text-muted-foreground text-sm">Try adjusting your filters</p>
-              <Button
-                onClick={() =>
-                  setFilters({ category: '', subCategory: '', minPrice: 0, maxPrice: MAX_PRICE })
-                }
-                variant="outline"
-                size="sm"
-                className="mt-4 border-accent/40 text-accent hover:bg-accent/10"
-              >
-                Clear Filters
-              </Button>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {filtered.map((product) => (
+                <ProductCard key={product.id.toString()} product={product} />
+              ))}
             </div>
           )}
         </div>

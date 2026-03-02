@@ -103,10 +103,7 @@ export default function OrderTracking() {
         {/* Timeline */}
         <div className="bg-card border border-border rounded-lg p-6">
           <h2 className="font-serif text-lg font-semibold mb-4">Order Status</h2>
-          <OrderStatusTimeline
-            statusHistory={order.statusHistory}
-            currentStatus={statusStr}
-          />
+          <OrderStatusTimeline currentStatus={statusStr} />
         </div>
 
         {/* Details */}

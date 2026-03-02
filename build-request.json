@@ -1,106 +1,41 @@
 {
   "kind": "build_request",
-  "title": "Deliver complete, clean, runnable source code for the full luxury e-commerce app",
+  "title": "Redeploy Version 1 as final production build",
   "projectName": "Luxe Store",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-13",
-      "text": "Ensure the Motoko backend (backend/main.mo) is complete and runnable: all types (Product, User, Cart, Wishlist, Order, Review) are fully defined, all CRUD query and update endpoints are implemented with no stubs or placeholders, role-based admin access control is enforced, and the file compiles without errors.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Complete code for all files (no missing parts)",
-          "Well-commented and clean code",
-          "Follow best practices"
-        ]
-      },
-      "acceptanceCriteria": [
-        "backend/main.mo compiles cleanly with no errors or warnings",
-        "All Product, User, Cart, Wishlist, Order, and Review types are fully defined",
-        "Every public query and update function referenced by the frontend exists and has a complete implementation",
-        "Admin-only functions reject calls from non-admin principals",
-        "All functions have inline comments explaining their purpose and logic"
-      ]
-    },
-    {
-      "id": "REQ-14",
-      "text": "Ensure every frontend source file is complete and runnable: all React components, pages, hooks, and utilities contain full implementations with no TODO placeholders, type errors, or missing imports. The app must compile with `tsc --noEmit` passing cleanly.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Complete code for all files (no missing parts)",
-          "Well-commented and clean code",
-          "Follow best practices"
-        ]
-      },
-      "acceptanceCriteria": [
-        "TypeScript compilation passes with zero errors",
-        "No component file contains TODO, placeholder, or stub implementations",
-        "All imports resolve to existing modules or packages",
-        "Every page component renders without runtime errors in the browser",
-        "All hooks (useQueries, useActor) correctly wire to the Motoko backend candid interface"
-      ]
-    },
-    {
-      "id": "REQ-15",
-      "text": "Ensure the full project structure is present and well-organized: backend/main.mo, frontend/index.html, frontend/src/main.tsx, frontend/src/App.tsx, all page files under frontend/src/pages/, all component files under frontend/src/components/, all hook files under frontend/src/hooks/, all utility files under frontend/src/utils/, frontend/index.css, frontend/src/index.css, frontend/tailwind.config.js, and any configuration files (dfx.json, package.json, tsconfig.json) must exist and be correctly configured.",
+      "id": "REQ-18",
+      "text": "Rebuild and redeploy the application in its current Version 1 state — all frontend source files, backend Motoko logic, styles, configuration files, and assets — exactly as they stand, with no modifications. This is a clean production push of the existing Version 1 codebase.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Full project structure"
+          "please update 🎬 Version 1",
+          "this is final version"
         ]
       },
       "acceptanceCriteria": [
-        "dfx.json correctly declares frontend and backend canisters",
-        "package.json lists all required dependencies with correct versions",
-        "tsconfig.json is correctly configured for the React + TypeScript stack",
-        "All directories and files listed in all_files_summary.json are present",
-        "Running `npm install` followed by `dfx deploy` completes without errors"
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "text": "Add a comprehensive README.md at the project root with step-by-step setup and run instructions covering: prerequisites (Node.js, DFX SDK versions), installation (`npm install`), local replica startup (`dfx start`), canister deployment (`dfx deploy`), accessing the frontend URL, configuring the admin principal, and a brief description of all major features.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Include step-by-step setup and run instructions"
-        ]
-      },
-      "acceptanceCriteria": [
-        "README.md exists at the project root",
-        "Prerequisites section lists required Node.js and DFX SDK versions",
-        "Step-by-step commands are provided for install, start, and deploy",
-        "Admin principal configuration is explained",
-        "All major app features are briefly described",
-        "Any assumptions made during development are documented in the README"
+        "The deployed application matches the Version 1 codebase without any new changes introduced.",
+        "All existing features (luxury theme, home carousel, product catalog, product detail, cart, wishlist, checkout, auth, order history/tracking, admin panel, search) are functional in production.",
+        "The frontend compiles cleanly with tsc --noEmit passing.",
+        "The backend Motoko actor deploys without errors.",
+        "Custom brand imagery in frontend/public/assets/generated renders correctly on the home page and category pages."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "All backend logic must remain in a single Motoko actor in backend/main.mo",
-    "Do not introduce any external databases, cloud services, or unsupported third-party integrations"
+    "Do not introduce any new features, UI changes, or backend logic changes.",
+    "Do not modify any files — this is a redeploy of the existing Version 1 state.",
+    "Immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui) must not be touched."
   ],
   "nonGoals": [
-    "Adding new features beyond what is already specified in the existing feature set",
-    "Migrating to a different frontend framework or backend language",
-    "Implementing real-time WebSocket functionality",
-    "Integrating external payment gateways (only UI flow for UPI/card/wallet/COD is in scope)",
-    "Mobile native app packaging (React Native, Flutter, etc.)"
+    "No new features or enhancements.",
+    "No bug fixes beyond what exists in Version 1.",
+    "No design or theme changes.",
+    "No new images or asset generation."
   ],
   "imageRequirements": {
     "required": [],

@@ -43,15 +43,20 @@ export default function Checkout() {
 
   const items = cart?.items ?? [];
 
-  const total = items.reduce((sum, item) => {
+  const subtotal = items.reduce((sum, item) => {
     const product = products?.find((p) => p.id === item.productId);
     if (!product) return sum;
-    const price =
-      product.discountPercent > 0
-        ? product.price * (1 - Number(product.discountPercent) / 100)
-        : product.price;
-    return sum + price * Number(item.quantity);
+    return sum + product.price * Number(item.quantity);
   }, 0);
+
+  const discount = items.reduce((sum, item) => {
+    const product = products?.find((p) => p.id === item.productId);
+    if (!product) return sum;
+    return sum + product.price * (Number(product.discountPercent) / 100) * Number(item.quantity);
+  }, 0);
+
+  const shipping = subtotal > 100 ? 0 : 9.99;
+  const total = subtotal - discount + shipping;
 
   const validateAddress = () => {
     const required: (keyof ShippingAddress)[] = [
@@ -290,9 +295,10 @@ export default function Checkout() {
         {/* Order Summary */}
         <div>
           <OrderSummary
-            items={items}
-            products={products ?? []}
-            showCheckoutButton={false}
+            subtotal={subtotal}
+            discount={discount}
+            shipping={shipping}
+            total={total}
           />
         </div>
       </div>

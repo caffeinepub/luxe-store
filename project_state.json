@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
+  "projectStateVersion": 9,
   "summary": "Professional luxury e-commerce mobile app for a fashion/lifestyle brand selling Clothing (men, women, kids), Perfumes, and Jewelry. Features a premium UI with home banners, product listings, cart, wishlist, secure multi-payment checkout, user auth, order tracking, admin panel, push notifications, and search/filter. Targets Android and iOS.",
   "architectural_notes": [
     "Premium, elegant luxury brand style targeting fashion and lifestyle products",
@@ -103,6 +103,22 @@
       "title": "Ensure every frontend source file is complete and runnable: all React components, pages, hooks, and utilities contain full implementations with no TODO placeholders, type errors, or missing imports. The app must compile with `tsc --noEmit` passing cleanly.",
       "reqIds": [
         "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-revert-the-entire-application-both-frontend-and-backend-to-its-version-1-state-undoing-all-changes-introduced-in-version-2-restore-all-frontend-source-files-backend-motoko-logic-styles-configuration-files-and-assets-to-exactly-the-state-they-were-in-at-version-1",
+      "title": "Revert the entire application (both frontend and backend) to its Version 1 state, undoing all changes introduced in Version 2. Restore all frontend source files, backend Motoko logic, styles, configuration files, and assets to exactly the state they were in at Version 1.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rebuild-and-redeploy-the-application-in-its-current-version-1-state-all-frontend-source-files-backend-motoko-logic-styles-configuration-files-and-assets-exactly-as-they-stand-with-no-modifications-this-is-a-clean-production-push-of-the-existing-version-1-codebase",
+      "title": "Rebuild and redeploy the application in its current Version 1 state — all frontend source files, backend Motoko logic, styles, configuration files, and assets — exactly as they stand, with no modifications. This is a clean production push of the existing Version 1 codebase.",
+      "reqIds": [
+        "REQ-18"
       ],
       "version": 1
     }

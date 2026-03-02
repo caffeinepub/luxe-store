@@ -1,146 +1,208 @@
 /**
- * urlParams.ts — URL parameter utility functions.
- * Helpers for reading and persisting query strings with sessionStorage fallback.
+ * Utility functions for parsing and managing URL parameters
+ * Works with both hash-based and browser-based routing
  */
 
-/** Read a query parameter from the current URL. */
-export function getQueryParam(key: string): string | null {
-  const params = new URLSearchParams(window.location.search);
-  return params.get(key);
-}
+/**
+ * Extracts a URL parameter from the current URL
+ * Works with both query strings (?param=value) and hash-based routing (#/?param=value)
+ *
+ * @param paramName - The name of the parameter to extract
+ * @returns The parameter value if found, null otherwise
+ */
+export function getUrlParameter(paramName: string): string | null {
+    // Try to get from regular query string first
+    const urlParams = new URLSearchParams(window.location.search);
+    const regularParam = urlParams.get(paramName);
 
-/** Read all query parameters as a plain object. */
-export function getAllQueryParams(): Record<string, string> {
-  const params = new URLSearchParams(window.location.search);
-  const result: Record<string, string> = {};
-  params.forEach((value, key) => {
-    result[key] = value;
-  });
-  return result;
-}
+    if (regularParam !== null) {
+        return regularParam;
+    }
 
-/** Build a query string from a plain object. */
-export function buildQueryString(params: Record<string, string | number | undefined>): string {
-  const filtered = Object.entries(params).filter(
-    ([, v]) => v !== undefined && v !== '' && v !== null
-  );
-  if (filtered.length === 0) return '';
-  const qs = new URLSearchParams(
-    filtered.map(([k, v]) => [k, String(v)])
-  ).toString();
-  return `?${qs}`;
-}
+    // If not found, try to extract from hash (for hash-based routing)
+    const hash = window.location.hash;
+    const queryStartIndex = hash.indexOf('?');
 
-/** Persist a value to sessionStorage. */
-export function persistToSession(key: string, value: string): void {
-  try {
-    sessionStorage.setItem(key, value);
-  } catch {
-    // sessionStorage may be unavailable in some environments
-  }
-}
+    if (queryStartIndex !== -1) {
+        const hashQuery = hash.substring(queryStartIndex + 1);
+        const hashParams = new URLSearchParams(hashQuery);
+        return hashParams.get(paramName);
+    }
 
-/** Read a value from sessionStorage. */
-export function readFromSession(key: string): string | null {
-  try {
-    return sessionStorage.getItem(key);
-  } catch {
     return null;
-  }
-}
-
-/** Clear a value from sessionStorage. */
-export function clearFromSession(key: string): void {
-  try {
-    sessionStorage.removeItem(key);
-  } catch {
-    // ignore
-  }
 }
 
 /**
- * Read a secret/config parameter from multiple sources:
- * URL query params → sessionStorage → empty string.
- * Used by useActor.ts for admin token initialization.
+ * Stores a parameter in sessionStorage for persistence across navigation
+ * Useful for maintaining state like admin tokens throughout the session
+ *
+ * @param key - The key to store the value under
+ * @param value - The value to store
  */
-export function getSecretParameter(key: string): string {
-  // 1. Check URL query params
-  const fromUrl = getQueryParam(key);
-  if (fromUrl) {
-    // Persist to session so it survives navigation
-    persistToSession(key, fromUrl);
-    return fromUrl;
-  }
-  // 2. Fall back to sessionStorage
-  const fromSession = readFromSession(key);
-  if (fromSession) return fromSession;
-  // 3. Not found
-  return '';
+export function storeSessionParameter(key: string, value: string): void {
+    try {
+        sessionStorage.setItem(key, value);
+    } catch (error) {
+        console.warn(`Failed to store session parameter ${key}:`, error);
+    }
 }
 
-/** Format a price number as a currency string. */
-export function formatPrice(price: number, currency = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(price);
+/**
+ * Retrieves a parameter from sessionStorage
+ *
+ * @param key - The key to retrieve
+ * @returns The stored value if found, null otherwise
+ */
+export function getSessionParameter(key: string): string | null {
+    try {
+        return sessionStorage.getItem(key);
+    } catch (error) {
+        console.warn(`Failed to retrieve session parameter ${key}:`, error);
+        return null;
+    }
 }
 
-/** Format a bigint timestamp (nanoseconds) to a readable date string. */
-export function formatTimestamp(ns: bigint): string {
-  const ms = Number(ns / 1_000_000n);
-  return new Date(ms).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+/**
+ * Gets a parameter from URL or sessionStorage (URL takes precedence)
+ * If found in URL, also stores it in sessionStorage for future use
+ *
+ * @param paramName - The name of the parameter to retrieve
+ * @param storageKey - Optional custom storage key (defaults to paramName)
+ * @returns The parameter value if found, null otherwise
+ */
+export function getPersistedUrlParameter(paramName: string, storageKey?: string): string | null {
+    const key = storageKey || paramName;
+
+    // Check URL first
+    const urlValue = getUrlParameter(paramName);
+    if (urlValue !== null) {
+        // Store in session for persistence
+        storeSessionParameter(key, urlValue);
+        return urlValue;
+    }
+
+    // Fall back to session storage
+    return getSessionParameter(key);
 }
 
-/** Format a bigint timestamp to a short date. */
-export function formatTimestampShort(ns: bigint): string {
-  const ms = Number(ns / 1_000_000n);
-  return new Date(ms).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+/**
+ * Removes a parameter from sessionStorage
+ *
+ * @param key - The key to remove
+ */
+export function clearSessionParameter(key: string): void {
+    try {
+        sessionStorage.removeItem(key);
+    } catch (error) {
+        console.warn(`Failed to clear session parameter ${key}:`, error);
+    }
 }
 
-/** Format a bigint timestamp to date + time. */
-export function formatTimestampFull(ns: bigint): string {
-  const ms = Number(ns / 1_000_000n);
-  return new Date(ms).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+/**
+ * Removes a specific parameter from the URL hash without reloading the page
+ * Preserves route information and other parameters in the hash
+ * Used to remove sensitive data from the address bar after extracting it
+ *
+ * @param paramName - The parameter to remove from the hash
+ *
+ * @example
+ * // URL: https://app.com/#/dashboard?caffeineAdminToken=xxx&other=value
+ * // After clearParamFromHash('caffeineAdminToken')
+ * // URL: https://app.com/#/dashboard?other=value
+ */
+function clearParamFromHash(paramName: string): void {
+    if (!window.history.replaceState) {
+        return;
+    }
+
+    const hash = window.location.hash;
+    if (!hash || hash.length <= 1) {
+        return;
+    }
+
+    // Remove the leading #
+    const hashContent = hash.substring(1);
+
+    // Split route path from query string
+    const queryStartIndex = hashContent.indexOf('?');
+
+    if (queryStartIndex === -1) {
+        // No query string in hash, nothing to remove
+        return;
+    }
+
+    const routePath = hashContent.substring(0, queryStartIndex);
+    const queryString = hashContent.substring(queryStartIndex + 1);
+
+    // Parse and remove the specific parameter
+    const params = new URLSearchParams(queryString);
+    params.delete(paramName);
+
+    // Reconstruct the URL
+    const newQueryString = params.toString();
+    let newHash = routePath;
+
+    if (newQueryString) {
+        newHash += '?' + newQueryString;
+    }
+
+    // If we still have content in the hash, keep it; otherwise remove the hash entirely
+    const newUrl = window.location.pathname + window.location.search + (newHash ? '#' + newHash : '');
+    window.history.replaceState(null, '', newUrl);
 }
 
-/** Get a human-readable label for an OrderStatus variant. */
-export function getOrderStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    placed:         'Order Placed',
-    confirmed:      'Confirmed',
-    shipped:        'Shipped',
-    outForDelivery: 'Out for Delivery',
-    delivered:      'Delivered',
-    cancelled:      'Cancelled',
-  };
-  return labels[status] ?? status;
+/**
+ * Gets a secret from the URL hash fragment only (more secure than query params)
+ * Hash fragments aren't sent to servers or logged in access logs
+ * The hash is immediately cleared from the URL after extraction to prevent history leakage
+ *
+ * Usage: https://yourapp.com/#secret=xxx
+ *
+ * @param paramName - The name of the secret parameter
+ * @returns The secret value if found (from hash or session), null otherwise
+ */
+export function getSecretFromHash(paramName: string): string | null {
+    // Check session first to avoid unnecessary URL manipulation
+    const existingSecret = getSessionParameter(paramName);
+    if (existingSecret !== null) {
+        return existingSecret;
+    }
+
+    // Try to extract from hash
+    const hash = window.location.hash;
+    if (!hash || hash.length <= 1) {
+        return null;
+    }
+
+    // Remove the leading #
+    const hashContent = hash.substring(1);
+    const params = new URLSearchParams(hashContent);
+    const secret = params.get(paramName);
+
+    if (secret) {
+        // Store in session for persistence
+        storeSessionParameter(paramName, secret);
+        // Immediately clear the secret parameter from URL to avoid history leakage
+        clearParamFromHash(paramName);
+        return secret;
+    }
+
+    return null;
 }
 
-/** Get a color class for an OrderStatus variant. */
-export function getOrderStatusColor(status: string): string {
-  const colors: Record<string, string> = {
-    placed:         'bg-blue-100 text-blue-800',
-    confirmed:      'bg-purple-100 text-purple-800',
-    shipped:        'bg-yellow-100 text-yellow-800',
-    outForDelivery: 'bg-orange-100 text-orange-800',
-    delivered:      'bg-green-100 text-green-800',
-    cancelled:      'bg-red-100 text-red-800',
-  };
-  return colors[status] ?? 'bg-muted text-muted-foreground';
+/**
+ * Gets a secret parameter with fallback chain: hash -> sessionStorage
+ * This is the recommended way to handle sensitive parameters like admin tokens
+ *
+ * Security benefits over regular URL params:
+ * - Hash fragments are not sent to the server
+ * - Not logged in server access logs
+ * - Not sent in HTTP Referer headers
+ * - Automatically cleared from URL after extraction
+ *
+ * @param paramName - The name of the secret parameter
+ * @returns The secret value if found, null otherwise
+ */
+export function getSecretParameter(paramName: string): string | null {
+    return getSecretFromHash(paramName);
 }
