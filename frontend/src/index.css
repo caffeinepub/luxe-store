@@ -1,0 +1,175 @@
+/* ============================================================
+   Luxe Store — Global Styles
+   OKLCH color system with luxury gold/ivory/charcoal palette
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design Tokens ─────────────────────────────────────────── */
+@layer base {
+  :root {
+    /* Background & Surface */
+    --background:       oklch(0.98 0.005 85);
+    --foreground:       oklch(0.18 0.015 260);
+
+    --card:             oklch(1.00 0.000 0);
+    --card-foreground:  oklch(0.18 0.015 260);
+
+    --popover:          oklch(1.00 0.000 0);
+    --popover-foreground: oklch(0.18 0.015 260);
+
+    /* Primary — deep charcoal */
+    --primary:          oklch(0.22 0.015 260);
+    --primary-foreground: oklch(0.97 0.005 85);
+
+    /* Secondary — warm ivory */
+    --secondary:        oklch(0.94 0.012 85);
+    --secondary-foreground: oklch(0.22 0.015 260);
+
+    /* Accent — luxury gold */
+    --accent:           oklch(0.72 0.12 75);
+    --accent-foreground: oklch(0.18 0.015 260);
+
+    /* Muted */
+    --muted:            oklch(0.94 0.008 85);
+    --muted-foreground: oklch(0.52 0.015 260);
+
+    /* Semantic */
+    --destructive:      oklch(0.55 0.22 25);
+    --destructive-foreground: oklch(0.97 0.005 85);
+
+    --success:          oklch(0.55 0.15 145);
+    --warning:          oklch(0.72 0.15 75);
+
+    /* Border & Ring */
+    --border:           oklch(0.88 0.010 85);
+    --input:            oklch(0.88 0.010 85);
+    --ring:             oklch(0.72 0.12 75);
+
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Gold palette */
+    --gold-50:  oklch(0.97 0.020 85);
+    --gold-100: oklch(0.93 0.040 82);
+    --gold-200: oklch(0.87 0.070 78);
+    --gold-300: oklch(0.80 0.100 76);
+    --gold-400: oklch(0.74 0.120 74);
+    --gold-500: oklch(0.68 0.130 72);
+    --gold-600: oklch(0.60 0.120 70);
+    --gold-700: oklch(0.50 0.100 68);
+    --gold-800: oklch(0.38 0.075 65);
+    --gold-900: oklch(0.28 0.050 62);
+
+    /* Charcoal palette */
+    --charcoal-50:  oklch(0.96 0.005 260);
+    --charcoal-100: oklch(0.92 0.008 260);
+    --charcoal-200: oklch(0.84 0.012 260);
+    --charcoal-300: oklch(0.72 0.015 260);
+    --charcoal-400: oklch(0.58 0.015 260);
+    --charcoal-500: oklch(0.44 0.015 260);
+    --charcoal-600: oklch(0.34 0.015 260);
+    --charcoal-700: oklch(0.26 0.015 260);
+    --charcoal-800: oklch(0.20 0.015 260);
+    --charcoal-900: oklch(0.14 0.012 260);
+  }
+
+  .dark {
+    --background:       oklch(0.14 0.012 260);
+    --foreground:       oklch(0.94 0.008 85);
+
+    --card:             oklch(0.18 0.015 260);
+    --card-foreground:  oklch(0.94 0.008 85);
+
+    --popover:          oklch(0.18 0.015 260);
+    --popover-foreground: oklch(0.94 0.008 85);
+
+    --primary:          oklch(0.72 0.12 75);
+    --primary-foreground: oklch(0.14 0.012 260);
+
+    --secondary:        oklch(0.22 0.015 260);
+    --secondary-foreground: oklch(0.94 0.008 85);
+
+    --accent:           oklch(0.72 0.12 75);
+    --accent-foreground: oklch(0.14 0.012 260);
+
+    --muted:            oklch(0.22 0.015 260);
+    --muted-foreground: oklch(0.62 0.015 260);
+
+    --destructive:      oklch(0.55 0.22 25);
+    --destructive-foreground: oklch(0.97 0.005 85);
+
+    --border:           oklch(0.26 0.015 260);
+    --input:            oklch(0.26 0.015 260);
+    --ring:             oklch(0.72 0.12 75);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+/* ── Utility Classes ────────────────────────────────────────── */
+@layer utilities {
+  .text-gold {
+    color: var(--accent);
+  }
+
+  .bg-gold {
+    background-color: var(--accent);
+  }
+
+  .border-gold {
+    border-color: var(--accent);
+  }
+
+  .luxury-shadow {
+    box-shadow: 0 4px 24px oklch(0.18 0.015 260 / 0.12);
+  }
+
+  .gold-shadow {
+    box-shadow: 0 4px 20px oklch(0.72 0.12 75 / 0.30);
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* ── Scrollbar Styling ──────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-600);
+}

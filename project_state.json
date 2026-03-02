@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "Professional luxury e-commerce mobile app for a fashion/lifestyle brand selling Clothing (men, women, kids), Perfumes, and Jewelry. Features a premium UI with home banners, product listings, cart, wishlist, secure multi-payment checkout, user auth, order tracking, admin panel, push notifications, and search/filter. Targets Android and iOS.",
+  "architectural_notes": [
+    "Premium, elegant luxury brand style targeting fashion and lifestyle products",
+    "Multi-platform target: Android and iOS (React Native or Flutter recommended)",
+    "Auth via phone number and email; secure payment integration required"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-apply-a-premium-luxury-visual-theme-across-the-entire-app-deep-charcoal-or-soft-black-background-gold-champagne-accent-colors-cream-ivory-text-elegant-serif-headings-paired-with-clean-sans-serif-body-text-generous-whitespace-and-subtle-shadow-glow-effects-the-aesthetic-must-feel-high-end-and-fashion-forward-suitable-for-jewelry-perfumes-and-designer-clothing",
+      "title": "Apply a premium luxury visual theme across the entire app: deep charcoal or soft black background, gold/champagne accent colors, cream/ivory text, elegant serif headings paired with clean sans-serif body text, generous whitespace, and subtle shadow/glow effects. The aesthetic must feel high-end and fashion-forward, suitable for jewelry, perfumes, and designer clothing.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-home-screen-that-displays-a-full-width-hero-banner-carousel-auto-scrolling-with-manual-swipe-support-for-promotions-and-new-arrivals-followed-by-a-horizontal-category-quick-access-row-clothes-perfumes-jewelry-a-featured-products-horizontal-scroll-section-and-a-new-arrivals-grid-section",
+      "title": "Implement a Home screen that displays a full-width hero banner carousel (auto-scrolling with manual swipe support) for promotions and new arrivals, followed by a horizontal category quick-access row (Clothes, Perfumes, Jewelry), a 'Featured Products' horizontal scroll section, and a 'New Arrivals' grid section.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-product-catalog-listing-page-that-shows-products-in-a-2-column-grid-each-product-card-must-display-product-image-name-price-discounted-price-with-percentage-off-badge-if-applicable-and-an-add-to-wishlist-heart-icon-support-filtering-by-category-clothes-sub-categories-men-women-kids-perfumes-jewelry-price-range-and-sort-by-popularity-price-newest",
+      "title": "Implement a Product Catalog / Listing page that shows products in a 2-column grid. Each product card must display: product image, name, price, discounted price (with percentage off badge if applicable), and an 'Add to Wishlist' heart icon. Support filtering by category (Clothes → sub-categories: Men, Women, Kids; Perfumes; Jewelry), price range, and sort by popularity/price/newest.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-product-detail-page-showing-large-product-image-gallery-swipeable-product-name-brand-price-with-original-discounted-price-description-size-selector-for-clothing-color-variant-selector-quantity-picker-star-ratings-with-aggregate-score-paginated-user-reviews-reviewer-name-rating-comment-date-and-two-ctas-add-to-cart-and-add-to-wishlist",
+      "title": "Build a Product Detail page showing: large product image gallery (swipeable), product name, brand, price with original/discounted price, description, size selector (for Clothing), color/variant selector, quantity picker, star ratings with aggregate score, paginated user reviews (reviewer name, rating, comment, date), and two CTAs — 'Add to Cart' and 'Add to Wishlist'.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-cart-and-wishlist-functionality-the-cart-page-must-list-added-items-with-image-name-variant-quantity-controls-and-remove-option-plus-an-order-summary-with-subtotal-discount-and-total-the-wishlist-page-lists-saved-products-with-the-ability-to-move-items-to-cart-or-remove-them",
+      "title": "Implement Cart and Wishlist functionality. The Cart page must list added items with image, name, variant, quantity controls (+/-), and remove option, plus an order summary with subtotal, discount, and total. The Wishlist page lists saved products with the ability to move items to cart or remove them.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-checkout-flow-with-shipping-address-entry-order-summary-review-and-a-payment-selection-step-supporting-upi-credit-debit-card-with-card-number-expiry-cvv-fields-wallet-and-cash-on-delivery-options-on-confirmation-create-the-order-in-the-backend-with-status-pending-and-display-an-order-confirmation-screen-with-order-id",
+      "title": "Build a Checkout flow with: shipping address entry, order summary review, and a payment selection step supporting UPI, Credit/Debit Card (with card number/expiry/CVV fields), Wallet, and Cash on Delivery options. On confirmation, create the order in the backend with status 'Pending' and display an order confirmation screen with order ID.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-user-authentication-with-internet-identity-the-platform-s-supported-auth-mechanism-map-it-to-a-user-profile-that-stores-display-name-email-address-and-phone-number-provide-a-profile-page-where-users-can-view-and-update-their-stored-name-email-and-phone-number",
+      "title": "Implement user authentication with Internet Identity (the platform's supported auth mechanism) — map it to a user profile that stores display name, email address, and phone number. Provide a Profile page where users can view and update their stored name, email, and phone number.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-order-history-page-showing-all-past-orders-for-the-logged-in-user-with-order-id-date-item-thumbnails-total-and-current-status-implement-an-order-detail-tracking-page-showing-a-visual-status-timeline-placed-confirmed-shipped-out-for-delivery-delivered-with-timestamps-for-each-status-update",
+      "title": "Implement an Order History page showing all past orders for the logged-in user, with order ID, date, item thumbnails, total, and current status. Implement an Order Detail / Tracking page showing a visual status timeline (Placed → Confirmed → Shipped → Out for Delivery → Delivered) with timestamps for each status update.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-an-admin-panel-accessible-only-to-a-designated-admin-principal-the-admin-panel-must-support-add-product-name-description-category-sub-category-images-via-url-price-discount-stock-variants-edit-product-delete-product-view-all-orders-and-update-order-status-confirmed-shipped-out-for-delivery-delivered",
+      "title": "Build an Admin Panel accessible only to a designated admin principal. The admin panel must support: Add Product (name, description, category, sub-category, images via URL, price, discount, stock, variants), Edit Product, Delete Product, view all orders, and update order status (Confirmed / Shipped / Out for Delivery / Delivered).",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-global-search-bar-in-the-navigation-header-searching-by-keyword-should-query-product-names-and-descriptions-and-display-results-in-a-filtered-product-grid-results-must-be-filterable-by-the-same-price-category-popularity-filters-as-the-main-listing-page",
+      "title": "Implement a global Search bar in the navigation header. Searching by keyword should query product names and descriptions and display results in a filtered product grid. Results must be filterable by the same price/category/popularity filters as the main listing page.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-use-custom-brand-imagery-a-luxury-hero-banner-for-the-home-carousel-a-category-cover-image-for-clothes-one-for-perfumes-one-for-jewelry-and-a-brand-logo-mark-render-all-generated-images-from-frontend-public-assets-generated",
+      "title": "Generate and use custom brand imagery: a luxury hero banner for the home carousel, a category cover image for Clothes, one for Perfumes, one for Jewelry, and a brand logo mark. Render all generated images from frontend/public/assets/generated.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-every-frontend-source-file-is-complete-and-runnable-all-react-components-pages-hooks-and-utilities-contain-full-implementations-with-no-todo-placeholders-type-errors-or-missing-imports-the-app-must-compile-with-tsc-noemit-passing-cleanly",
+      "title": "Ensure every frontend source file is complete and runnable: all React components, pages, hooks, and utilities contain full implementations with no TODO placeholders, type errors, or missing imports. The app must compile with `tsc --noEmit` passing cleanly.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Home screen with banners and featured products",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Product categories: Clothes, Perfumes, Jewelry",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Product listing with images, price, discount, size/color options",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Product detail page with description, reviews and ratings",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add to cart and wishlist functionality",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Secure checkout with UPI, Credit/Debit Card, Wallet, Cash on Delivery",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "User login/signup with phone number and email",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Order tracking and order history",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Admin panel to add, edit and manage products",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Push notifications for offers and new arrivals",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Search and filter by price, category, popularity",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Responsive design for Android and iOS",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Define the full Motoko backend data model and API. Required entities: Product (id, name, description, category, subCategory, imageUrls, price, discountPercent, stock, variants:[{size, color, quantity}], createdAt), User (principal, name, email, phone), Cart (userId, items:[{productId, variant, quantity}]), Wishlist (userId, productIds), Order (id, userId, items, shippingAddress, paymentMethod, totalAmount, status, statusHistory:[{status, timestamp}]), Review (id, productId, userId, rating, comment, date). Expose query and update functions for all CRUD operations needed by the frontend.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Ensure the Motoko backend (backend/main.mo) is complete and runnable: all types (Product, User, Cart, Wishlist, Order, Review) are fully defined, all CRUD query and update endpoints are implemented with no stubs or placeholders, role-based admin access control is enforced, and the file compiles without errors.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Ensure the full project structure is present and well-organized: backend/main.mo, frontend/index.html, frontend/src/main.tsx, frontend/src/App.tsx, all page files under frontend/src/pages/, all component files under frontend/src/components/, all hook files under frontend/src/hooks/, all utility files under frontend/src/utils/, frontend/index.css, frontend/src/index.css, frontend/tailwind.config.js, and any configuration files (dfx.json, package.json, tsconfig.json) must exist and be correctly configured.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Add a comprehensive README.md at the project root with step-by-step setup and run instructions covering: prerequisites (Node.js, DFX SDK versions), installation (`npm install`), local replica startup (`dfx start`), canister deployment (`dfx deploy`), accessing the frontend URL, configuring the admin principal, and a brief description of all major features.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Luxe Store",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

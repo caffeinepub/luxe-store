@@ -1,0 +1,257 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Complete and polish Luxe Store luxury e-commerce frontend",
+  "requirements": [
+    {
+      "id": "REQ-14",
+      "summary": "Ensure every frontend source file is complete and runnable with no TODO placeholders, type errors, or missing imports",
+      "acceptanceCriteria": [
+        "TypeScript compilation passes with zero errors",
+        "No component file contains TODO, placeholder, or stub implementations",
+        "All imports resolve to existing modules or packages",
+        "Every page component renders without runtime errors in the browser",
+        "All hooks (useQueries, useActor) correctly wire to the Motoko backend candid interface"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Review and ensure complete routing configuration with no missing route handlers, proper error boundaries, and all page imports resolve correctly. Verify ThemeProvider wrapping and Header/Footer layout integration are fully implemented."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Ensure complete implementation of navigation, search input, cart badge, and authentication controls. Verify the component uses the authorization component's useInternetIdentity hook correctly for login/logout functionality. Wire generated brand logo asset at frontend/public/assets/generated/brand-logo.dim_256x256.png into the header branding."
+        },
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Ensure complete footer implementation with all navigation links, social icons, and branding. Remove any placeholder content or TODO comments."
+        },
+        {
+          "path": "frontend/src/components/HeroCarousel.tsx",
+          "operation": "modify",
+          "description": "Ensure complete carousel implementation with auto-advance, manual navigation, and dot indicators. Wire generated hero banner images at frontend/public/assets/generated/hero-banner-1.dim_1200x500.png, frontend/public/assets/generated/hero-banner-2.dim_1200x500.png, and frontend/public/assets/generated/hero-banner-3.dim_1200x500.png as carousel slides with overlay text and CTA links."
+        },
+        {
+          "path": "frontend/src/components/CategoryCard.tsx",
+          "operation": "modify",
+          "description": "Ensure complete category card implementation with hover effects and navigation to filtered product listings. Wire generated category images at frontend/public/assets/generated/category-clothes.dim_600x400.png, frontend/public/assets/generated/category-jewelry.dim_600x400.png, and frontend/public/assets/generated/category-perfumes.dim_600x400.png for the respective categories."
+        },
+        {
+          "path": "frontend/src/components/ProductCard.tsx",
+          "operation": "modify",
+          "description": "Ensure complete product card implementation with image, discount badge, wishlist toggle, and navigation. Verify all event handlers and state management are fully implemented with no placeholders."
+        },
+        {
+          "path": "frontend/src/components/ProductImageGallery.tsx",
+          "operation": "modify",
+          "description": "Ensure complete image gallery implementation with main image display, navigation arrows, and thumbnail selection. Verify all state transitions and edge cases are handled."
+        },
+        {
+          "path": "frontend/src/components/CartItemCard.tsx",
+          "operation": "modify",
+          "description": "Ensure complete cart item card with product details, quantity picker, pricing calculations, and remove functionality. Verify the component correctly uses useQueries hooks for cart mutations."
+        },
+        {
+          "path": "frontend/src/components/OrderSummary.tsx",
+          "operation": "modify",
+          "description": "Ensure complete order summary with accurate subtotal, discount, shipping, and total calculations. Verify all price formatting and optional checkout button integration."
+        },
+        {
+          "path": "frontend/src/components/ShippingAddressForm.tsx",
+          "operation": "modify",
+          "description": "Ensure complete shipping address form with all required fields (name, address, city, state, ZIP, country, phone) and proper validation. Verify controlled input binding to ShippingAddress type."
+        },
+        {
+          "path": "frontend/src/components/PaymentMethodSelector.tsx",
+          "operation": "modify",
+          "description": "Ensure complete payment method selector supporting UPI, credit/debit card, wallet, and cash on delivery. Verify inline credit card detail fields appear correctly when card payment is selected."
+        },
+        {
+          "path": "frontend/src/components/ReviewsList.tsx",
+          "operation": "modify",
+          "description": "Ensure complete reviews list with average rating display and inline review submission form for authenticated users. Verify the component uses useQueries hooks correctly for fetching and submitting reviews."
+        },
+        {
+          "path": "frontend/src/components/FilterPanel.tsx",
+          "operation": "modify",
+          "description": "Ensure complete filter panel with category, subcategory, and price range controls. Verify all filter state updates are properly emitted via onFiltersChange callback."
+        },
+        {
+          "path": "frontend/src/components/SortDropdown.tsx",
+          "operation": "modify",
+          "description": "Ensure complete sort dropdown with all four sort options (popularity, price asc/desc, newest). Verify selection state and callback integration."
+        },
+        {
+          "path": "frontend/src/components/ColorVariantSelector.tsx",
+          "operation": "modify",
+          "description": "Ensure complete color variant selector with visual selection state and proper onSelect callback. Remove any placeholder implementations."
+        },
+        {
+          "path": "frontend/src/components/SizeSelector.tsx",
+          "operation": "modify",
+          "description": "Ensure complete size selector with visual selection state and proper callback integration. Verify gold highlight styling for selected size."
+        },
+        {
+          "path": "frontend/src/components/QuantityPicker.tsx",
+          "operation": "modify",
+          "description": "Ensure complete quantity picker with increment/decrement controls, min/max bounds validation, and styled buttons. Verify all edge cases are handled."
+        },
+        {
+          "path": "frontend/src/components/ProfileSetupModal.tsx",
+          "operation": "modify",
+          "description": "Ensure complete profile setup modal that prompts newly authenticated users to complete their profile. Verify the component correctly uses the authorization component's useInternetIdentity hook and profile save mutation from useQueries. Follow the authorization component's guidance to prevent modal flash during loading."
+        },
+        {
+          "path": "frontend/src/components/AccessDeniedScreen.tsx",
+          "operation": "modify",
+          "description": "Ensure complete access denied screen with clear messaging and navigation back to home. Verify styling matches the luxury theme."
+        },
+        {
+          "path": "frontend/src/components/ProductManagementTable.tsx",
+          "operation": "modify",
+          "description": "Ensure complete admin product management table with add, edit, and delete functionality. Verify all mutations use useQueries hooks correctly and all confirmation dialogs are implemented."
+        },
+        {
+          "path": "frontend/src/components/OrderManagementTable.tsx",
+          "operation": "modify",
+          "description": "Ensure complete admin order management table with sortable rows and status update dropdown. Verify the component uses useQueries hooks correctly for fetching and updating orders."
+        },
+        {
+          "path": "frontend/src/components/ProductFormModal.tsx",
+          "operation": "modify",
+          "description": "Ensure complete product form modal for creating and editing products with all fields (name, category, images, price, stock, variants). Verify form validation and mutation integration."
+        },
+        {
+          "path": "frontend/src/components/OrderStatusTimeline.tsx",
+          "operation": "modify",
+          "description": "Ensure complete order status timeline with vertical layout, checkmarks for completed steps, and timestamps from order history. Verify styling matches luxury theme."
+        },
+        {
+          "path": "frontend/src/pages/Home.tsx",
+          "operation": "modify",
+          "description": "Ensure complete home page with hero carousel, category cards (using generated assets), featured products grid, and new arrivals section. Verify all sections use useQueries hooks correctly to fetch product data and handle loading states."
+        },
+        {
+          "path": "frontend/src/pages/ProductListing.tsx",
+          "operation": "modify",
+          "description": "Ensure complete product listing page with responsive filter panel (desktop sidebar, mobile sheet), sort dropdown, and product grid. Verify memoized filtering logic and skeleton loaders work correctly."
+        },
+        {
+          "path": "frontend/src/pages/ProductDetail.tsx",
+          "operation": "modify",
+          "description": "Ensure complete product detail page with image gallery, variant selectors, quantity picker, add-to-cart, wishlist toggle, and reviews section. Verify all state management and mutations are fully implemented with proper error handling."
+        },
+        {
+          "path": "frontend/src/pages/Cart.tsx",
+          "operation": "modify",
+          "description": "Ensure complete cart page displaying cart items with remove functionality and order summary. Verify handling of unauthenticated, loading, and empty cart states. Ensure the component uses the authorization component correctly to check authentication status."
+        },
+        {
+          "path": "frontend/src/pages/Checkout.tsx",
+          "operation": "modify",
+          "description": "Ensure complete multi-step checkout page (Shipping → Payment → Review) with progress indicator, form validation, and order placement. Verify the component uses useQueries placeOrder mutation and navigates to confirmation page on success."
+        },
+        {
+          "path": "frontend/src/pages/OrderConfirmation.tsx",
+          "operation": "modify",
+          "description": "Ensure complete order confirmation page displaying order details (ID, status, items, shipping address) after successful checkout. Verify loading and not-found states are handled correctly."
+        },
+        {
+          "path": "frontend/src/pages/OrderHistory.tsx",
+          "operation": "modify",
+          "description": "Ensure complete order history page with paginated list of user orders sorted by date. Verify status badges, navigation to tracking pages, login prompt for unauthenticated users, and skeleton loaders during fetch. Ensure the component uses the authorization component correctly."
+        },
+        {
+          "path": "frontend/src/pages/OrderTracking.tsx",
+          "operation": "modify",
+          "description": "Ensure complete order tracking page showing detailed information for a single order including status timeline, item list, and metadata. Verify unauthenticated, loading, and not-found states are handled. Ensure the component uses the authorization component correctly."
+        },
+        {
+          "path": "frontend/src/pages/Wishlist.tsx",
+          "operation": "modify",
+          "description": "Ensure complete wishlist page displaying saved products with move-to-cart and remove functionality. Verify loading, empty, and unauthenticated states are handled. Ensure the component uses the authorization component correctly."
+        },
+        {
+          "path": "frontend/src/pages/Profile.tsx",
+          "operation": "modify",
+          "description": "Ensure complete profile page with form to view and update user profile (name, email, phone) and display Internet Identity principal ID. Verify login prompt for unauthenticated users and skeleton loaders during fetch. Ensure the component uses the authorization component correctly."
+        },
+        {
+          "path": "frontend/src/pages/SearchResults.tsx",
+          "operation": "modify",
+          "description": "Ensure complete search results page fetching products by keyword with client-side category/price filters and sorting. Verify responsive layout with desktop sidebar and mobile sheet for filters."
+        },
+        {
+          "path": "frontend/src/pages/AdminPanel.tsx",
+          "operation": "modify",
+          "description": "Ensure complete admin panel page checking authentication and admin status before rendering tabbed product and order management tables. Verify login prompt and access denied screen are shown appropriately using the authorization component's access control."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure all React Query hooks for backend interactions are complete with proper error handling, optimistic updates where appropriate, and correct typing. Verify hooks for products, user profile, cart, orders, and reviews CRUD operations match the backend interface exactly. Ensure the component uses the authorization component's profile hooks correctly (getCallerUserProfile, saveCallerUserProfile, getUserProfile)."
+        },
+        {
+          "path": "frontend/src/utils/urlParams.ts",
+          "operation": "modify",
+          "description": "Ensure complete URL parameter utility functions for reading, persisting, and clearing query strings and hash-based routes with sessionStorage fallback. Remove any placeholder implementations."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Ensure complete global CSS with Google Fonts imports (Playfair Display, Inter), Tailwind directives, and luxury-themed CSS custom properties for light/dark modes. Verify all design tokens (gold, charcoal, ivory) are defined and applied consistently."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Ensure complete Tailwind configuration defining luxury e-commerce theme with custom colors (gold, ivory, charcoal), serif/sans font families, custom shadows, and animation keyframes. Verify configuration matches the design tokens in index.css."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "Ensure the full frontend project structure is present, well-organized, and correctly configured",
+      "acceptanceCriteria": [
+        "dfx.json correctly declares frontend and backend canisters",
+        "package.json lists all required dependencies with correct versions",
+        "tsconfig.json is correctly configured for the React + TypeScript stack",
+        "All directories and files listed in all_files_summary.json are present",
+        "Running `npm install` followed by `dfx deploy` completes without errors"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Ensure the HTML shell correctly references the main TypeScript entry point and sets the page title to 'Luxe Store'. Verify the root div mount point exists and meta tags are appropriate."
+        },
+        {
+          "path": "frontend/index.css",
+          "operation": "modify",
+          "description": "Verify this global Tailwind CSS entry point correctly defines all CSS custom property design tokens and is imported by the build system."
+        }
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "summary": "Add a comprehensive README.md with step-by-step setup and run instructions",
+      "acceptanceCriteria": [
+        "README.md exists at the project root",
+        "Prerequisites section lists required Node.js and DFX SDK versions",
+        "Step-by-step commands are provided for install, start, and deploy",
+        "Admin principal configuration is explained",
+        "All major app features are briefly described",
+        "Any assumptions made during development are documented in the README"
+      ],
+      "file_operations": [
+        {
+          "path": "README.md",
+          "operation": "create",
+          "description": "Create a comprehensive README.md at the project root covering: project overview of Luxe Store luxury e-commerce app, prerequisites (Node.js 18+, DFX SDK 0.15+), installation steps (`npm install`), local development workflow (`dfx start --clean --background`, `dfx deploy`), frontend access URL, admin principal configuration using dfx identity, feature list (public product browsing, cart, wishlist, checkout with multiple payment methods, order tracking, admin product/order management), technology stack (React, TypeScript, TanStack Router, React Query, Tailwind CSS, shadcn/ui, Motoko backend, Internet Identity authentication with role-based access control), folder structure explanation, and any development assumptions or notes."
+        }
+      ]
+    }
+  ]
+}
